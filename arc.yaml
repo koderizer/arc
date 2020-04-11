@@ -1,11 +1,12 @@
 #System architecture of arc
+
 users:
-  - name: "dev"
-    desc: "he who create software"
-  - name: "product"
-    desc: "he who design product"
-  - name: "ops"
-    desc: "he who run software service"
+- name: "dev"
+  desc: "he who create software"
+- name: "product"
+  desc: "he who design product"
+- name: "ops"
+  desc: "he who run software service"
 
 internal-systems:
 - name: "arc"
