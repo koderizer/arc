@@ -1,0 +1,66 @@
+#System architecture of arc
+users:
+  - name: "dev"
+    desc: "he who create software"
+  - name: "product"
+    desc: "he who design product"
+  - name: "ops"
+    desc: "he who run software service"
+
+internal-systems:
+- name: "arc"
+  desc: |
+    Enable deloper to author, inspect and version control software systems design and code. 
+    Allow integration with other Ci/Cd systems to build and auto verify software system's
+    impelementation versus design.
+
+  containers:
+  - name: arc-cli
+    runtime: cli-binary
+    technology: golang
+    desc: "local utility to parse and build arc data to and from visualizations"
+
+  - name: arc-gui
+    runtime: chrome 
+    technology: javascript-spa 
+    desc: "Web base user interface to author and inspect software architecture design"
+
+  - name: arc-api
+    runtime: alpine-docker 
+    technology: golang-microservice 
+    desc: "api servers that enable webhooks to other ci/cd toolchain to inspect and update design models"
+    components:
+     - name: arc-inpsector-api 
+       desc: "inspect the stored software design model"
+       code-path: "./arc-api"
+     - name: arc-update-api
+       desc: "create or update software design information"
+       code-path: "./arc-api"
+       
+  - name: arc-db
+    runtime: database
+    technology: neo4j
+    desc: "graph database that store the software design models and dependency paths"
+
+external-systems:
+- git-server:
+  desc: "source version control"
+- build-service:
+  desc: "integration runner that build, test, release software"
+- deploy-service:
+  desc: "deployment infrastructure and service that provision the software runtime to production"
+- dev-ide:
+  desc: "software developement editor and integrated environment"
+
+relations:
+ - "dev. design and develop software. arc"
+ - "product. view system design. arc-gui"
+ - "ops. inspect containers layout. arc-gui"
+ - "dev. author containers design. arc-gui"
+ - "dev-cli. serve to browser. arc-gui"
+ - "arc-gui. call [https:restful] api. arc-inspector-api"
+ - "arc-cli. call [https:restful] api. arc-update-api"
+ - "dev-ide. integrate. arc-cli"
+ - "build-service. update system model. arc-update-api"
+ - "deploy-service. verify deployment design. arc"
+ - "arc-cli. download new project template. git-server"
