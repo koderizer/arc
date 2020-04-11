@@ -1,5 +1,5 @@
 ---
-app: arc
+app: "arc"
 users:
   - name: "dev"
     desc: "one who create software"

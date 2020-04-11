@@ -1,3 +1,4 @@
+app: arc
 containers:
 - name: arc-cli
   components:
