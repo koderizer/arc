@@ -1,0 +1,9 @@
+containers:
+- name: arc-cli
+  components:
+  - name: commands
+    desc: "basic command interfaces"
+    technology: golang-cobra
+  - name: arcd
+    desc: "model serving engine when run in localhost"
+    technology: golang-fasthttp
