@@ -15,7 +15,7 @@ func TestC4ContextPuml(t *testing.T) {
 			in: model.ArchType{
 				App: "context-test", 
 				Desc: "This is a test", 
-				Users: []struct{string,string}{{Name: "tester", Desc: "one who test"}}
+				Users: []model.ArchUser{model.ArchUser{Name: "tester", Desc: "one who test"}},
 			},
 			out: {
 				"somefailthing",
