@@ -1,0 +1,9 @@
+app: arc
+components: 
+  - name: plantuml-server
+    desc: "plantuml server to render graph"
+    technology: java-plantuml
+    code: "plantuml/plantuml-server:jetty"
+  - name: puml-interpretor
+    desc: "grpc server that layout puml text and feed to plantuml server to render"
+    code: golang-grpc

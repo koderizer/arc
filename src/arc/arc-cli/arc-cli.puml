@@ -1,0 +1,15 @@
+@startuml
+namespace cmd {
+    class archModel << (S,Aquamarine) >> {
+        + App string
+        + Desc string
+        + Users []<font color=blue>struct</font>{string, string}
+        + InternalSystems []<font color=blue>struct</font>{string, string, []<font color=blue>struct</font>{string, string, string, string}}
+        + ExternalSystems []<font color=blue>struct</font>{string, string}
+        + Relations []string
+
+    }
+}
+
+
+@enduml

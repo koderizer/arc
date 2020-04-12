@@ -1,0 +1,39 @@
+package main
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"html/template"
+
+	"github.com/koderizer/arc/src/arc/model"
+)
+
+const c4contextTemplate = "./templates/C4Context.puml.template"
+const c4contextFile = "./C4Context.puml"
+
+//C4Model type hold all data structure to render different diagrams
+type C4Model struct {
+	Title string
+	arc   model.ArchType
+}
+
+//C4ContextPuml generate puml code for Context diagram using the given ArchType data
+func C4ContextPuml(arcData model.ArchType) (string, error) {
+	if arcData.App == "" || arcData.Desc == "" {
+		return "", errors.New("Context require Application name and description")
+	}
+	contextTemplate, err := template.ParseFiles(c4contextTemplate)
+	if err != nil {
+		return "", err
+	}
+	data := C4Model{Title: fmt.Sprintf("System Context Diagram for %s", arcData.App), arc: arcData}
+	puml := []byte{}
+	wr := bytes.NewBuffer(puml)
+
+	if err = contextTemplate.ExecuteTemplate(wr, contextTemplate.Name(), data); err != nil {
+		return "", err
+	}
+
+	return wr.String(), nil
+}

@@ -25,6 +25,11 @@ internal-systems:
       runtime: ecma-engines
       technology: javascript-spa 
       desc: "Web base user interface to author and inspect software architecture design"
+    
+    - name: arc-viz
+      runtime: docker-java
+      technology: plantuml 
+      desc: "render visualization of archtecture design given a plantuml text specifications"
   
     - name: arc-api
       runtime: alpine-docker 
@@ -42,6 +47,12 @@ internal-systems:
       runtime: database
       technology: dgraph
       desc: "graph database that store the software design models and dependency paths"
+
+    - name: arc-index
+      runtime: docker-golang
+      technology: golang-https://github.com/kazukousen/gouml 
+      desc: "inspect and index a source repository to auto generate code level architecture diagrams"
+
 
 external-systems:
   - git-server:
@@ -65,3 +76,4 @@ relations:
   - "build-service. update system model. arc-update-api"
   - "deploy-service. verify deployment design. arc"
   - "arc-cli. download new project template. git-server"
+  - "arc-index. pull source from. git-server"
