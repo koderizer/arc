@@ -5,19 +5,19 @@ LAYOUT_WITH_LEGEND
 
 title {{.Title}} 
 
-{{range .Persons}}
+{{range .Arc.Users}}
 Person({{.Name}}, "{{.Role}}", "{{.Desc}}")
 {{end}}
 
-{{range .InternalSystems}}
+{{range .Arc.InternalSystems}}
 System({{.Name}}, "{{.Role}}","{{.Desc}}")
 {{end}}
 
-{{range .ExternalSystems}}
+{{range .Arc.ExternalSystems}}
 System_Ext({{.Name}}, "{{.Role}}", "{{.Desc}}")
 {{end}}
 
-{{range .Relations}}
-Rel({{.Subject}},{{.Object}},"{{.Path}}","{{.PathProperty}}")
-{{end}}
+' {{range .Arc.Relations}}
+' Rel({{.Subject}},{{.Object}},"{{.Path}}","{{.PathProperty}}")
+' {{end}}
 @enduml

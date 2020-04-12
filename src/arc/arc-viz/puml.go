@@ -15,7 +15,7 @@ const c4contextFile = "./C4Context.puml"
 //C4Model type hold all data structure to render different diagrams
 type C4Model struct {
 	Title string
-	arc   model.ArchType
+	Arc   model.ArchType
 }
 
 //C4ContextPuml generate puml code for Context diagram using the given ArchType data
@@ -27,7 +27,7 @@ func C4ContextPuml(arcData model.ArchType) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	data := C4Model{Title: fmt.Sprintf("System Context Diagram for %s", arcData.App), arc: arcData}
+	data := C4Model{Title: fmt.Sprintf("System Context Diagram for %s", arcData.App), Arc: arcData}
 	puml := []byte{}
 	wr := bytes.NewBuffer(puml)
 

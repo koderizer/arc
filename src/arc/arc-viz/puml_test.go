@@ -3,32 +3,30 @@ package main
 import (
 	"testing"
 
-	"github.com/koderizer/arc/src/arc/model"
+	model "github.com/koderizer/arc/src/arc/model"
 )
 
 func TestC4ContextPuml(t *testing.T) {
 	var contextTests = []struct {
-		in model.ArchType
-		out struct { string error}
-	} {
+		in  model.ArchType
+		out string
+		err error
+	}{
 		{
-			in: model.ArchType{
-				App: "context-test", 
-				Desc: "This is a test", 
-				Users: []model.ArchUser{model.ArchUser{Name: "tester", Desc: "one who test"}},
+			model.ArchType{
+				App:   "context-test",
+				Desc:  "This is a test",
+				Users: []model.ArchUser{{Name: "tester", Desc: "one who test"}},
 			},
-			out: {
-				"somefailthing",
-				nil
-			}
-		}
-
+			"somefailthing",
+			nil,
+		},
 	}
 
 	for _, tt := range contextTests {
-		actual := C4ContextPuml(tt)
-		if actual != tt.out {
-			t.Errorf("C4Context(%+v) expect %+v, actual %+v",tt.in, tt.out, actual)
+		actual, err := C4ContextPuml(tt.in)
+		if actual != tt.out || err != tt.err {
+			t.Errorf("C4Context(%+v) expect %+v, actual puml is %+v, actual error is %s", tt.in, tt.out, actual, err)
 		}
 	}
 }
