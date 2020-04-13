@@ -1,5 +1,7 @@
 package model
 
+//go:generate protoc -I . --go_out=plugins=grpc:./ ./model.proto
+
 //ArchUser represent a person who use some software
 type ArchUser struct {
 	Name string `yaml:"name"`

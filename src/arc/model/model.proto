@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package model;
+
+service ArcViz {
+    rpc Render(ArcBlob) returns (ArcPresentation) {};
+}
+
+message ArcBlob {
+    //This is the raw serialized byte array of the arc data type
+    bytes data = 1;
+}
+
+message ArcPresentation {
+    enum Type {
+        PNG = 0;
+        SVG = 1;
+        PDF = 3;
+    }
+
+    //Type of the presentation 
+    Type type = 1;
+
+    //Serialized raw data to be shared
+    bytes data = 2;
+}
