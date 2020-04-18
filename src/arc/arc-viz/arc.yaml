@@ -1,4 +1,5 @@
-app: arc
+system: arc
+
 components: 
   - name: plantuml-server
     desc: "plantuml server to render graph"

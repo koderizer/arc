@@ -1,8 +1,8 @@
 ---
-app: "arc"
+app: "arcs"
 users:
   - name: "dev"
-    desc: "one who create software"
+    desc: "one who create software service"
   - name: "product"
     desc: "one who design product"
   - name: "ops"
