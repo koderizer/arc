@@ -3,17 +3,17 @@ package main
 import (
 	"testing"
 
-	model "github.com/koderizer/arc/src/arc/model"
+	model "github.com/koderizer/arc/model"
 )
 
 func TestC4ContextPuml(t *testing.T) {
 	var contextTests = []struct {
-		in  model.ArchType
+		in  model.ArcType
 		out string
 		err error
 	}{
 		{
-			model.ArchType{
+			model.ArcType{
 				App:             "context-test",
 				Desc:            "This is a test",
 				Users:           []model.ArchUser{{Name: "tester", Desc: "one who test"}},

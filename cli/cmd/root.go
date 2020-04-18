@@ -29,7 +29,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "arc-cli",
+	Use:   "cli",
 	Short: "Command line to interact with software architecture model configuration and view",
 	Long: `arc allow you to inspect and architecture visually by passing in an yaml config file 
 	You can also interact with the arc system api to get updated information on the overall application architecture 
@@ -55,7 +55,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.arc-cli.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cli.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -75,9 +75,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".arc-cli" (without extension).
+		// Search config in home directory with name ".cli" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".arc-cli")
+		viper.SetConfigName(".cli")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

@@ -1,22 +1,16 @@
 @startuml
 !include C4-PlantUML/C4_Context.puml
-
 LAYOUT_WITH_LEGEND
-
 title {{.Title}} 
-
 {{range .Arc.Users}}
 Person({{.Name}}, "{{.Role}}", "{{.Desc}}")
 {{end}}
-
 {{range .Arc.InternalSystems}}
 System({{.Name}}, "{{.Role}}","{{.Desc}}")
 {{end}}
-
 {{range .Arc.ExternalSystems}}
 System_Ext({{.Name}}, "{{.Role}}", "{{.Desc}}")
 {{end}}
-
 ' {{range .Arc.Relations}}
 ' Rel({{.Subject}},{{.Object}},"{{.Path}}","{{.PathProperty}}")
 ' {{end}}

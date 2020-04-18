@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package model;
+
+service ArcViz {
+    //Render serve the presentation given the raw data and type 
+    rpc Render(RenderRequest) returns (ArcPresentation) {};
+}
+
+enum ArcDataFormat {
+    JSON = 0;
+    ARC = 1;
+    PUML = 2;
+}
+
+message RenderRequest {
+    //Type of the data
+    ArcDataFormat dataFormat = 1;
+    
+    //visualFormat of the render request
+    ArcVisualFormat visualFormat = 2;
+
+    //data is the raw serialized byte array of the arc data type
+    bytes data = 3;
+}
+
+enum ArcVisualFormat {
+    PNG = 0;
+    SVG = 1;
+    PDF = 3;
+}
+message ArcPresentation {
+    //Format of the presentation 
+    ArcVisualFormat format = 1;
+
+    //Serialized raw data to be shared
+    bytes data = 2;
+}

@@ -42,8 +42,8 @@ type ArchExternalSystem struct {
 	Desc string `yaml:"desc"`
 }
 
-//ArchType is the core data structure of a software architecture
-type ArchType struct {
+//ArcType is the core data structure of a software architecture
+type ArcType struct {
 	App             string               `yaml:"app"`
 	Desc            string               `yaml:"desc"`
 	Users           []ArchUser           `yaml:"users"`

@@ -1,8 +1,8 @@
-system: arc
+system: viz 
 
 components: 
-  - name: plantuml-server
-    desc: "plantuml server to render graph"
+  - name: arcViz-server
+    desc: "service that render architecture visualization"
     technology: java-plantuml
     code: "plantuml/plantuml-server:jetty"
   - name: puml-interpretor

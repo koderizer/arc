@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/koderizer/arc/src/arc/arc-cli/cmd"
+import "github.com/koderizer/arc/cli/cmd"
 
 func main() {
 	cmd.Execute()

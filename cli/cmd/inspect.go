@@ -19,41 +19,17 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/koderizer/arc/model"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
-
-//archModel is the core data structure of a software architecture
-type archModel struct {
-	App   string `yaml:"app"`
-	Desc  string `yaml:"desc"`
-	Users []struct {
-		Name string `yaml:"name"`
-		Desc string `yaml:"desc"`
-	} `yaml:"users"`
-	InternalSystems []struct {
-		Name       string `yaml:"name"`
-		Desc       string `yaml:"desc"`
-		Containers []struct {
-			Name       string `yaml:"name"`
-			Desc       string `yaml:"desc"`
-			Runtime    string `yaml:"runtime"`
-			Technology string `yaml:"technology"`
-		} `yaml:"containers"`
-	} `yaml:"internal-systems"`
-	ExternalSystems []struct {
-		Name string `yaml:"name"`
-		Desc string `yaml:"desc"`
-	}
-	Relations []string `yaml:"relations"`
-}
 
 // inspectCmd represents the inspect command
 var inspectCmd = &cobra.Command{
 	Use:   "inspect",
 	Short: "inspect an architecture from an arc yaml config file",
 	Long: `given the arc yaml config file, this command will ingest the content
-and parse into an arc datastructure and trigger the arc-gui to display the arch view `,
+and parse into an arc datastructure and trigger the gui to display the arch view `,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("inspect called")
@@ -66,7 +42,7 @@ and parse into an arc datastructure and trigger the arc-gui to display the arch 
 			fmt.Println("fail to read arc yaml file")
 			return
 		}
-		arc := new(archModel)
+		arc := new(model.ArcType)
 		err = yaml.Unmarshal(arcFile, arc)
 		if err != nil {
 			fmt.Println("fail to parse yaml content")

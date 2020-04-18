@@ -1,7 +1,7 @@
 system: arc
 
 containers:
-- name: arc-cli
+- name: cli
   components:
   - name: commands
     desc: "basic command interfaces"

@@ -1,4 +1,4 @@
-module github.com/koderizer/arc/src/arc-viz
+module github.com/koderizer/arc/src/viz
 
 go 1.14
 
