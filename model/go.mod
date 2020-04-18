@@ -1,4 +1,4 @@
-module github.com/koderizer/arc/src/arc/model
+module github.com/koderizer/arc/model
 
 go 1.14
 
