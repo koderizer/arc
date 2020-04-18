@@ -8,9 +8,9 @@ build: clean
 	cp -R puml/templates build/
 	cp -R puml/C4-PlantUML build/
 	go build -o build/arcviz main.go
-	docker build -t plantuml-server .
+	docker build -t arc-viz .
 
 clean:
 	rm -rf build
 run:
-	docker run -p $(PORT):$(CONTAINER_PORT) plantuml-server
+	docker run -p $(PORT):$(CONTAINER_PORT) arc-viz
