@@ -5,8 +5,8 @@ all: build
 
 build: clean
 	mkdir -p build
-	cp -R templates build/
-	cp -R C4-PlantUML build/
+	cp -R puml/templates build/
+	cp -R puml/C4-PlantUML build/
 	go build -o build/arcviz main.go
 	docker build -t plantuml-server .
 

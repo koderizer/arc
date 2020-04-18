@@ -43,9 +43,9 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Implement ArcVizServer
 	Run: func(cmd *cobra.Command, args []string) {
-		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 		if err != nil {
-			log.Fatal("failed to listen: %v", err)
+			log.Fatalf("failed to listen: %v", err)
 		}
 		grpcServer := grpc.NewServer()
 		model.RegisterArcVizServer(grpcServer, &server.ArcViz{})
