@@ -32,6 +32,7 @@ import (
 
 var port string
 var cfgFile string
+var plantUmlAddr string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -50,7 +51,7 @@ to quickly create a Cobra application.`,
 			log.Fatalf("failed to listen: %v", err)
 		}
 		grpcServer := grpc.NewServer()
-		model.RegisterArcVizServer(grpcServer, &server.ArcViz{})
+		model.RegisterArcVizServer(grpcServer, server.NewArcViz(plantUmlAddr))
 		grpcServer.Serve(lis)
 	},
 }
@@ -73,6 +74,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.viz.yaml)")
 	rootCmd.PersistentFlags().StringVar(&port, "port", "10000", "listening port(default is 10000)")
+	rootCmd.PersistentFlags().StringVar(&plantUmlAddr, "pumladdr", "http://localhost:8086", "Address of the Plant UML server(default is on localhost)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
