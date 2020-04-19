@@ -12,7 +12,7 @@ internal-systems:
   - name: "arc"
     desc: |
       Enable deloper to author, inspect and version control software systems design and code. 
-      Allow integration with other Ci/Cd systems to build and auto verify software system's
+      Allow integration with other Ci/Cd systems to build and auto verify software system
       impelementation versus design.
   
     containers:
@@ -54,13 +54,13 @@ internal-systems:
       desc: "inspect and index a source repository to auto generate code level architecture diagrams"
 
 external-systems:
-  - git-server:
+  - name: git-server
     desc: "source version control"
-  - build-service:
+  - name: build-service
     desc: "integration runner that build, test, release software"
-  - deploy-service:
+  - name: deploy-service
     desc: "deployment infrastructure and service that provision the software runtime to production"
-  - dev-ide:
+  - name: dev-ide
     desc: "software developement editor and integrated environment"
 
 # relations:

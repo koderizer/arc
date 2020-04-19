@@ -7,11 +7,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"net/url"
-	"strings"
-	"time"
+	"regexp"
 
 	"github.com/koderizer/arc/model"
 	puml "github.com/koderizer/arc/viz/puml"
@@ -20,6 +18,7 @@ import (
 const renderTimeoutSecond = 3
 const renderKeepaliveSecond = 3
 const renderResponseTime = 3
+const defaultPlantUmlID = "SyfFKj2rKt3CoKnELR1Io4ZDoSa70000"
 
 //ArcViz type is the core config of ArcViz server
 type ArcViz struct {
@@ -44,55 +43,50 @@ func (s *ArcViz) doPumlRender(ctx context.Context, pumlSrc string, format model.
 		return nil, errors.New("Not supported")
 	}
 
-	//Create new graph from given source and extract the generated URI id
-	postData := url.Values{}
-	postData.Add("text", pumlSrc)
-	req, _ := http.NewRequest("POST", s.PumlRenderURI+"/form", strings.NewReader(postData.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlendcoded")
-
 	log.Printf("Generate code:\n%s", pumlSrc)
-	var client http.RoundTripper = &http.Transport{
-		Dial: (&net.Dialer{
-			Timeout:   renderTimeoutSecond * time.Second,
-			KeepAlive: renderKeepaliveSecond * time.Second,
-		}).Dial,
-		ResponseHeaderTimeout: time.Duration(renderResponseTime * time.Second),
-		DisableKeepAlives:     true,
-	}
 
-	resp, err := client.RoundTrip(req)
+	resp, err := http.PostForm(s.PumlRenderURI+"/form", url.Values{
+		"text": {pumlSrc},
+	})
 	if err != nil {
 		log.Printf("Internal Server error, unable to request render engine: %+v", err)
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusFound {
+	if resp.StatusCode != http.StatusOK {
 		log.Printf("Internal Server error, fail to render with code: %+v", resp.StatusCode)
 		return nil, errors.New("Render Failed")
 	}
 
-	//Download data content
-	outputURI, err := resp.Location()
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Unable to resolve the output location: %s", err)
 		return nil, err
 	}
-	resp.Body.Close()
 
-	outputID := strings.TrimPrefix(outputURI.Path, "/uml/")
+	re := regexp.MustCompile(outputPath + `(.*?)"`)
+	matches := re.FindSubmatch(body)
+	if matches == nil {
+		log.Print("Unable to get outputID")
+		return nil, errors.New("Render output location missing")
+	}
+	outputID := string(matches[1])
+
+	if outputID == defaultPlantUmlID {
+		log.Printf("Syntax error, default image returned")
+		return nil, errors.New("Render Failed")
+	}
 	outputPath += outputID
 
-	log.Printf("File generated: %s", outputPath)
-	datReq, _ := http.NewRequest("GET", outputPath, nil)
-
-	respOut, err := client.RoundTrip(datReq)
+	image, err := http.Get(outputPath)
 	if err != nil {
 		log.Printf("Internal server error, unable to get file from render engine: %+v", err)
 		return nil, errors.New("Render Failed")
 	}
-	defer respOut.Body.Close()
+	defer image.Body.Close()
 
-	return ioutil.ReadAll(respOut.Body)
+	return ioutil.ReadAll(image.Body)
 }
 
 //Render implement the rendering through PUML
