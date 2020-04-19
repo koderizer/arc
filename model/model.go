@@ -1,5 +1,11 @@
 package model
 
+import (
+	"bytes"
+	"encoding/gob"
+	"log"
+)
+
 //go:generate protoc -I . --go_out=plugins=grpc:./ ./model.proto
 
 //ArchUser represent a person who use some software
@@ -50,4 +56,26 @@ type ArcType struct {
 	InternalSystems []ArchInternalSystem `yaml:"internal-systems"`
 	ExternalSystems []ArchExternalSystem `yaml:"external-systems"`
 	Relations       []string             `yaml:"relations"`
+}
+
+//Decode struct to byte
+func (a *ArcType) Decode(inData []byte) error {
+	dec := gob.NewDecoder(bytes.NewBuffer(inData))
+	if err := dec.Decode(a); err != nil {
+		log.Printf("Fail to decode data: %v", err)
+		return err
+	}
+	return nil
+}
+
+//Encode struct to byte
+func (a *ArcType) Encode() ([]byte, error) {
+	var out bytes.Buffer
+	enc := gob.NewEncoder(&out)
+	err := enc.Encode(a)
+	if err != nil {
+		log.Printf("Fail to encode data: %v", err)
+		return nil, err
+	}
+	return out.Bytes(), nil
 }
