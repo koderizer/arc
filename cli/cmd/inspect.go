@@ -21,6 +21,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
+	"os/exec"
+	"runtime"
 
 	"github.com/koderizer/arc/model"
 	"github.com/spf13/cobra"
@@ -39,7 +42,6 @@ and parse into an arc datastructure and trigger the gui to display the arch view
 This command require an access to a arc-viz server, default is set to on localhost at port 10000`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("inspect called")
 		if len(args) == 0 {
 			fmt.Println("missing input arc yaml file")
 			return
@@ -81,9 +83,34 @@ This command require an access to a arc-viz server, default is set to on localho
 		}
 		png := base64.StdEncoding.EncodeToString(pngViz.GetData())
 
-		log.Printf("<img src=\"data:image/png;base64,%s\" />", png)
-		return
+		htm := fmt.Sprintf("<img src=\"data:image/png;base64,%s\" />", png)
+		err = ioutil.WriteFile("./index.html", []byte(htm), 0644)
+		if err != nil {
+			log.Printf("Fail to write output %s", err)
+			return
+		}
+		http.Handle("/", http.FileServer(http.Dir("./")))
+		go open("http://localhost:10001/")
+		panic(http.ListenAndServe(":10001", nil))
 	},
+}
+
+// open opens the specified URL in the default browser of the user.
+func open(url string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default: // "linux", "freebsd", "openbsd", "netbsd"
+		cmd = "xdg-open"
+	}
+	args = append(args, url)
+	return exec.Command(cmd, args...).Start()
 }
 
 func init() {
