@@ -29,7 +29,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "cli",
+	Use:   "arc",
 	Short: "Command line to interact with software architecture model configuration and view",
 	Long: `arc allow you to inspect and architecture visually by passing in an yaml config file 
 	You can also interact with the arc system api to get updated information on the overall application architecture 
@@ -77,7 +77,7 @@ func initConfig() {
 
 		// Search config in home directory with name ".cli" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".cli")
+		viper.SetConfigName(".arc")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
