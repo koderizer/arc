@@ -52,6 +52,7 @@ to quickly create a Cobra application.`,
 		}
 		grpcServer := grpc.NewServer()
 		model.RegisterArcVizServer(grpcServer, server.NewArcViz(plantUmlAddr))
+		log.Printf("Start server listening on port: %s", port)
 		grpcServer.Serve(lis)
 	},
 }
@@ -74,7 +75,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.viz.yaml)")
 	rootCmd.PersistentFlags().StringVar(&port, "port", "10000", "listening port(default is 10000)")
-	rootCmd.PersistentFlags().StringVar(&plantUmlAddr, "pumladdr", "http://localhost:8086", "Address of the Plant UML server(default is on localhost)")
+	rootCmd.PersistentFlags().StringVar(&plantUmlAddr, "pumladdr", "http://localhost:8080", "Address of the Plant UML server(default is on localhost)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

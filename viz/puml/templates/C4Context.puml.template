@@ -1,5 +1,5 @@
 @startuml
-!include C4-PlantUML/C4_Context.puml
+!include https://raw.githubusercontent.com/koderizer/arc/master/viz/puml/C4-PlantUML/C4_Context.puml
 LAYOUT_WITH_LEGEND
 title {{.Title}} 
 {{range .Arc.Users}}
