@@ -1,3 +1,3 @@
 #!/bin/bash
-/arcapp/arcviz &
-java -Djetty.contextpath=/ -jar target/dependency/jetty-runner.jar target/plantuml.war
+# /app/arcviz &
+java -Djetty.contextpath=/ -jar $JETTY_BASE/target/dependency/jetty-runner.jar $JETTY_BASE/target/plantuml.war

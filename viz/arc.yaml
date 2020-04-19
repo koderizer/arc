@@ -1,10 +1,10 @@
 system: viz 
 
 components: 
-  - name: arcViz-server
-    desc: "service that render architecture visualization"
+  - name: plantuml-server
+    desc: "service that render architecture visualization from staruml code"
     technology: java-plantuml
     code: "plantuml/plantuml-server:jetty"
-  - name: puml-interpretor
-    desc: "grpc server that layout puml text and feed to plantuml server to render"
+  - name: arc-viz
+    desc: "grpc server that layout puml source and feed to plantuml server to render then return"
     code: golang-grpc
