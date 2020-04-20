@@ -79,14 +79,15 @@ func (s *ArcViz) doPumlRender(ctx context.Context, pumlSrc string, format model.
 	}
 	outputPath += outputID
 
-	image, err := http.Get(outputPath)
-	if err != nil {
-		log.Printf("Internal server error, unable to get file from render engine: %+v", err)
-		return nil, errors.New("Render Failed")
-	}
-	defer image.Body.Close()
+	return []byte(outputPath), nil
+	// image, err := http.Get(outputPath)
+	// if err != nil {
+	// 	log.Printf("Internal server error, unable to get file from render engine: %+v", err)
+	// 	return nil, errors.New("Render Failed")
+	// }
+	// defer image.Body.Close()
 
-	return ioutil.ReadAll(image.Body)
+	// return ioutil.ReadAll(image.Body)
 }
 
 //Render implement the rendering through PUML

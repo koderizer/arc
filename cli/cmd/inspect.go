@@ -17,11 +17,9 @@ package cmd
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os/exec"
 	"runtime"
 
@@ -81,17 +79,19 @@ This command require an access to a arc-viz server, default is set to on localho
 			log.Printf("Fail to render with error: %+v", err)
 			return
 		}
-		png := base64.StdEncoding.EncodeToString(pngViz.GetData())
+		// png := base64.StdEncoding.EncodeToString(pngViz.GetData())
 
-		htm := fmt.Sprintf("<img src=\"data:image/png;base64,%s\" />", png)
-		err = ioutil.WriteFile("./index.html", []byte(htm), 0644)
-		if err != nil {
-			log.Printf("Fail to write output %s", err)
-			return
-		}
-		http.Handle("/", http.FileServer(http.Dir("./")))
-		go open("http://localhost:10001/")
-		panic(http.ListenAndServe(":10001", nil))
+		// htm := fmt.Sprintf("<img src=\"data:image/png;base64,%s\" />", png)
+		// err = ioutil.WriteFile("./index.html", []byte(htm), 0644)
+		// if err != nil {
+		// 	log.Printf("Fail to write output %s", err)
+		// 	return
+		// }
+		// http.Handle("/", http.FileServer(http.Dir("./")))
+		uri := string(pngViz.GetData())
+		log.Println(uri)
+		open(uri)
+		// panic(http.ListenAndServe(":10001", nil))
 	},
 }
 
