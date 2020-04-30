@@ -1,3 +1,6 @@
+package puml
+
+const c4ContextTemplate = `
 @startuml
 !include https://raw.githubusercontent.com/koderizer/arc/master/viz/puml/C4-PlantUML/C4_Context.puml
 
@@ -13,7 +16,11 @@ System({{.Name | CleanID}}, "{{.Name}}","{{.Desc | CleanUp}}")
 {{range .Arc.ExternalSystems}}
 System_Ext({{.Name | CleanID}}, "{{.Name}}", "{{.Desc | CleanUp}}")
 {{end}}
-{{range .Arc.Relations}}
-Rel({{.Subject | CleanID}},{{.Object | CleanID}},"{{.Pointer}}","{{.Pointer}}")
+{{range .Relations}}
+{{if (ne .PointerTech "")}}
+Rel({{.Subject | CleanID}},{{.Object | CleanID}},"{{.Pointer}}","{{.PointerTech}}")
+{{else}}
+Rel({{.Subject | CleanID}},{{.Object | CleanID}},"{{.Pointer}}")
 {{end}}
-@enduml
+{{end}}
+@enduml`

@@ -5,19 +5,26 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"text/template"
 
 	"github.com/koderizer/arc/model"
 )
 
-const c4contextTemplate = "./templates/C4Context.puml.tpl"
-const c4contextFile = "./C4Context.puml"
-
 //C4Model type hold all data structure to render different diagrams
 type C4Model struct {
-	Title string
-	Arc   model.ArcType
+	Title     string
+	Arc       model.ArcType
+	Relations []C4Relation
+}
+
+//C4Relation is the data struct to draw relation in C4
+type C4Relation struct {
+	Subject     string
+	Object      string
+	Pointer     string
+	PointerTech string
 }
 
 //C4ContextPuml generate puml code for Context diagram using the given ArcType data
@@ -29,7 +36,7 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 		"CleanUp": cleanUp,
 		"CleanID": cleanID,
 	}
-	contextTemplate, err := template.New(c4contextTemplate).Funcs(funcMap).ParseFiles(c4contextTemplate)
+	contextTemplate, err := template.New("c4ContextTemplate").Funcs(funcMap).Parse(c4ContextTemplate)
 	if err != nil {
 		log.Println("Fail to parse tpl file")
 		return "", err
@@ -43,7 +50,7 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 	puml := []byte{}
 	wr := bytes.NewBuffer(puml)
 
-	if err = contextTemplate.ExecuteTemplate(wr, "C4Context.puml.tpl", data); err != nil {
+	if err = contextTemplate.ExecuteTemplate(wr, "c4ContextTemplate", data); err != nil {
 		return "", err
 	}
 
@@ -74,26 +81,45 @@ func C4ContextParse(arcData model.ArcType) (C4Model, error) {
 		}
 		sys[key] = append(sys[key], r.Pointer)
 	}
-	relations := make([]model.Relation, 0)
+	relations := make([]C4Relation, 0)
 	for k, v := range sys {
 		so := strings.Split(k, "-")
 		//Skip self-referencing
 		if so[0] == so[1] {
 			continue
 		}
-		relations = append(relations, model.Relation{
-			Subject: so[0],
-			Pointer: strings.Join(v, ","),
-			Object:  so[1],
+		relations = append(relations, C4Relation{
+			Subject:     so[0],
+			Pointer:     cleanRelation(strings.Join(v, ",")),
+			PointerTech: parseRelationTech(strings.Join(v, ",")),
+			Object:      so[1],
 		})
 		log.Println(relations)
 	}
 	arc := arcData
-	arc.Relations = relations
-	return C4Model{Title: fmt.Sprintf("System Context Diagram for %s", arcData.App), Arc: arc}, nil
+	return C4Model{
+		Title:     fmt.Sprintf("System Context Diagram for %s", arcData.App),
+		Arc:       arc,
+		Relations: relations,
+	}, nil
+}
+
+//Utilities for C4 visualization parsing
+func parseRelationTech(rel string) string {
+	r := regexp.MustCompile(`\((.*?)\)`)
+	matches := r.FindSubmatch([]byte(rel))
+	if matches == nil {
+		return ""
+	}
+	return string(matches[1])
 }
 
 //Utilities function for template map
+func cleanRelation(rel string) string {
+	r := regexp.MustCompile(`\((.*?)\)`)
+	return r.ReplaceAllString(rel, "")
+}
+
 func cleanUp(s string) string {
 	return strings.ReplaceAll(s, "\n", " ")
 }
