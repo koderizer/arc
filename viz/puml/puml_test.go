@@ -16,9 +16,9 @@ func TestC4ContextPuml(t *testing.T) {
 			model.ArcType{
 				App:             "context-test",
 				Desc:            "This is a test",
-				Users:           []model.ArchUser{{Name: "tester", Desc: "one who test"}},
-				InternalSystems: []model.ArchInternalSystem{{Name: "testsys", Role: "To test system", Desc: "system test"}},
-				ExternalSystems: []model.ArchExternalSystem{{Name: "testexternsys", Role: "To test external system", Desc: "external system test"}},
+				Users:           []model.User{{Name: "tester", Desc: "one who test"}},
+				InternalSystems: []model.InternalSystem{{Name: "testsys", Role: "To test system", Desc: "system test"}},
+				ExternalSystems: []model.ExternalSystem{{Name: "testexternsys", Role: "To test external system", Desc: "external system test"}},
 			},
 			`@startuml
 !include C4-PlantUML/C4_Context.puml

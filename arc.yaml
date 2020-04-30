@@ -1,11 +1,11 @@
 app: "arcs"
 desc: "Arc is a simple utility to author, view, inspect and update software architecture design"
 users:
-  - name: "dev"
+  - name: dev
     desc: "one who create software service"
-  - name: "product"
+  - name: product
     desc: "one who design product"
-  - name: "ops"
+  - name: ops
     desc: "one who run software service"
 
 internal-systems:
@@ -63,16 +63,16 @@ external-systems:
   - name: dev-ide
     desc: "software developement editor and integrated environment"
 
-# relations:
-#   - {s: users.dev,p: design and develop software,o: arc}
-#   - {s: users.product,p: view system design,o: arc.gui}
-#   - {s: users.ops,p: inspect containers layout,o: arc.gui}
-#   - {s: users.dev,p: author containers design,o: arc.gui}
-#   - {s: arc.cli,p: serve to local browser,o: arc.gui}
-#   - {s: arc.gui,p: call (https:restful),o: arc.api.inspector}
-#   - {s: arc.cli,p: call (https:restful),o: arc.api.update}
-#   - {s: dev-ide,p: integrate (pluggin),o: arc.cli}
-#   - {s: build-service,p: update system model,o: arc.api.update}
-#   - {s: deploy-service,p: verify deployment design,o: arc}
-#   - {s: arc.cli,p: download new project template from,o: git-server}
-#   - {s: arc.index,p:  pull source from,o: git-server}
+relations:
+  - {s: dev,p: design and develop software,o: arc}
+  - {s: product,p: view system design,o: arc.gui}
+  - {s: ops,p: inspect containers layout,o: arc.gui}
+  - {s: dev,p: author containers design,o: arc.gui}
+  - {s: arc.cli,p: serve to local browser,o: arc.gui}
+  - {s: arc.gui,p: call (https:restful),o: arc.api.inspector}
+  - {s: arc.cli,p: call (https:restful),o: arc.api.update}
+  - {s: dev-ide,p: integrate (pluggin),o: arc.cli}
+  - {s: build-service,p: update system model,o: arc.api.update}
+  - {s: deploy-service,p: verify deployment design,o: arc}
+  - {s: arc.cli,p: download new project template from,o: git-server}
+  - {s: arc.index,p:  pull source from,o: git-server}

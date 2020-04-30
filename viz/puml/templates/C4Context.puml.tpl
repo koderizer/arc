@@ -14,6 +14,6 @@ System({{.Name | CleanID}}, "{{.Name}}","{{.Desc | CleanUp}}")
 System_Ext({{.Name | CleanID}}, "{{.Name}}", "{{.Desc | CleanUp}}")
 {{end}}
 {{range .Arc.Relations}}
-# Rel({{.Subject}},{{.Object}},"{{.Path}}","{{.PathProperty}}")
+Rel({{.Subject | CleanID}},{{.Object | CleanID}},"{{.Pointer}}","{{.Pointer}}")
 {{end}}
 @enduml

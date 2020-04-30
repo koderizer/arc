@@ -20,13 +20,6 @@ type C4Model struct {
 	Arc   model.ArcType
 }
 
-func cleanUp(s string) string {
-	return strings.ReplaceAll(s, "\n", " ")
-}
-func cleanID(s string) string {
-	return strings.ReplaceAll(s, "-", "")
-}
-
 //C4ContextPuml generate puml code for Context diagram using the given ArcType data
 func C4ContextPuml(arcData model.ArcType) (string, error) {
 	if arcData.App == "" || arcData.Desc == "" {
@@ -42,7 +35,11 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 		return "", err
 	}
 	contextTemplate = contextTemplate.Funcs(funcMap)
-	data := C4Model{Title: fmt.Sprintf("System Context Diagram for %s", arcData.App), Arc: arcData}
+	data, err := C4ContextParse(arcData)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
 	puml := []byte{}
 	wr := bytes.NewBuffer(puml)
 
@@ -51,4 +48,55 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 	}
 
 	return wr.String(), nil
+}
+
+//C4ContextParse prepare the data structure to render C4 Context diagram
+func C4ContextParse(arcData model.ArcType) (C4Model, error) {
+	/* Map up all primary top path between 2 systems
+	by folding all relations into parent systems */
+	sys := make(map[string][]string)
+
+	for _, r := range arcData.Relations {
+		s := strings.Split(r.Subject, ".")
+		o := strings.Split(r.Object, ".")
+		key := fmt.Sprintf("%s-%s", cleanID(s[0]), cleanID(o[0]))
+		if _, ok := sys[key]; !ok {
+			sys[key] = []string{r.Pointer}
+			continue
+		}
+		if len(s) == 1 && len(o) == 1 {
+			if path, ok := sys[key]; ok {
+				sys[key] = append(path, "")
+				copy(sys[key][1:], sys[key][0:])
+				sys[key][0] = r.Pointer
+			}
+			continue
+		}
+		sys[key] = append(sys[key], r.Pointer)
+	}
+	relations := make([]model.Relation, 0)
+	for k, v := range sys {
+		so := strings.Split(k, "-")
+		//Skip self-referencing
+		if so[0] == so[1] {
+			continue
+		}
+		relations = append(relations, model.Relation{
+			Subject: so[0],
+			Pointer: strings.Join(v, ","),
+			Object:  so[1],
+		})
+		log.Println(relations)
+	}
+	arc := arcData
+	arc.Relations = relations
+	return C4Model{Title: fmt.Sprintf("System Context Diagram for %s", arcData.App), Arc: arc}, nil
+}
+
+//Utilities function for template map
+func cleanUp(s string) string {
+	return strings.ReplaceAll(s, "\n", " ")
+}
+func cleanID(s string) string {
+	return strings.ReplaceAll(s, "-", "")
 }

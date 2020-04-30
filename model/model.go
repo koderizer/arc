@@ -8,41 +8,41 @@ import (
 
 //go:generate protoc -I . --go_out=plugins=grpc:./ ./model.proto
 
-//ArchUser represent a person who use some software
-type ArchUser struct {
+//User represent a person who use some software
+type User struct {
 	Name string `yaml:"name"`
 	Role string `yaml:"role"`
 	Desc string `yaml:"desc"`
 }
 
-//ArchInternalSystem represent a software system in the application
-type ArchInternalSystem struct {
-	Name       string          `yaml:"name"`
-	Role       string          `yaml:"role"`
-	Desc       string          `yaml:"desc"`
-	Containers []ArchContainer `yaml:"containers"`
+//InternalSystem represent a software system in the application
+type InternalSystem struct {
+	Name       string      `yaml:"name"`
+	Role       string      `yaml:"role"`
+	Desc       string      `yaml:"desc"`
+	Containers []Container `yaml:"containers"`
 }
 
-//ArchContainer represent a Container software runtime
-type ArchContainer struct {
-	Name       string          `yaml:"name"`
-	Role       string          `yaml:"role"`
-	Desc       string          `yaml:"desc"`
-	Runtime    string          `yaml:"runtime"`
-	Technology string          `yaml:"technology"`
-	Components []ArchComponent `yaml:"components"`
+//Container represent a Container software runtime
+type Container struct {
+	Name       string      `yaml:"name"`
+	Role       string      `yaml:"role"`
+	Desc       string      `yaml:"desc"`
+	Runtime    string      `yaml:"runtime"`
+	Technology string      `yaml:"technology"`
+	Components []Component `yaml:"components"`
 }
 
-//ArchComponent represent a Component that make up the implementation of a software running in a Container
-type ArchComponent struct {
+//Component represent a Component that make up the implementation of a software running in a Container
+type Component struct {
 	Name string `yaml:"name"`
 	Role string `yaml:"role"`
 	Desc string `yaml:"desc"`
 	Code string `yaml:"code"`
 }
 
-//ArchExternalSystem represent an external software system
-type ArchExternalSystem struct {
+//ExternalSystem represent an external software system
+type ExternalSystem struct {
 	Name string `yaml:"name"`
 	Role string `yaml:"role"`
 	Desc string `yaml:"desc"`
@@ -50,16 +50,16 @@ type ArchExternalSystem struct {
 
 //ArcType is the core data structure of a software architecture
 type ArcType struct {
-	App             string               `yaml:"app"`
-	Desc            string               `yaml:"desc"`
-	Users           []ArchUser           `yaml:"users"`
-	InternalSystems []ArchInternalSystem `yaml:"internal-systems"`
-	ExternalSystems []ArchExternalSystem `yaml:"external-systems"`
-	Relations       []ArchRelation       `yaml:"relations"`
+	App             string           `yaml:"app"`
+	Desc            string           `yaml:"desc"`
+	Users           []User           `yaml:"users"`
+	InternalSystems []InternalSystem `yaml:"internal-systems"`
+	ExternalSystems []ExternalSystem `yaml:"external-systems"`
+	Relations       []Relation       `yaml:"relations"`
 }
 
-//ArchRelation represent a relationship path between different elements
-type ArchRelation struct {
+//Relation represent a relationship path between different elements
+type Relation struct {
 	Subject string `yaml:"s"`
 	Pointer string `yaml:"p"`
 	Object  string `yaml:"o"`
