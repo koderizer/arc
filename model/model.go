@@ -55,7 +55,14 @@ type ArcType struct {
 	Users           []ArchUser           `yaml:"users"`
 	InternalSystems []ArchInternalSystem `yaml:"internal-systems"`
 	ExternalSystems []ArchExternalSystem `yaml:"external-systems"`
-	Relations       []string             `yaml:"relations"`
+	Relations       []ArchRelation       `yaml:"relations"`
+}
+
+//ArchRelation represent a relationship path between different elements
+type ArchRelation struct {
+	Subject string `yaml:"s"`
+	Pointer string `yaml:"p"`
+	Object  string `yaml:"o"`
 }
 
 //Decode struct to byte

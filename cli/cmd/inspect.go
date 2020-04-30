@@ -52,7 +52,7 @@ This command require an access to a arc-viz server, default is set to on localho
 		arc := &model.ArcType{}
 		err = yaml.Unmarshal(arcFile, arc)
 		if err != nil {
-			fmt.Println("fail to parse yaml content")
+			fmt.Println("fail to parse yaml content", err)
 			return
 		}
 		data, err := arc.Encode()
