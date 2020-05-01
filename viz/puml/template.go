@@ -9,10 +9,11 @@ title {{.Title}}
 Person({{.Name | CleanID}}, "{{.Name}}", "{{.Desc | CleanUp}}")
 {{end}}
 
+Enterprise_Boundary({{.Arc.App}}, "{{.Arc.Desc}}") {
 {{range .Arc.InternalSystems}}
-System({{.Name | CleanID}}, "{{.Name}}","{{.Desc | CleanUp}}")
+	System({{.Name | CleanID}}, "{{.Name}}","{{.Desc | CleanUp}}")
 {{end}}
-
+}
 {{range .Arc.ExternalSystems}}
 System_Ext({{.Name | CleanID}}, "{{.Name}}", "{{.Desc | CleanUp}}")
 {{end}}
