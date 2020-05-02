@@ -1,4 +1,4 @@
-BINARY_CLI_NAME=arc
+BINARY_CLI_NAME=arcli
 
 clean: 
 	rm -rf build

@@ -29,7 +29,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "arc",
+	Use:   "arcli",
 	Short: "Command line to interact with software architecture model configuration and view",
 	Long: `arc allow you to inspect and architecture visually by passing in an yaml config file 
 	You can also interact with the arc system api to get updated information on the overall application architecture 

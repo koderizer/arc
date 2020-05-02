@@ -22,6 +22,7 @@ import (
 	"log"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/koderizer/arc/model"
 	"github.com/spf13/cobra"
@@ -30,21 +31,32 @@ import (
 )
 
 var vizAddress string
+var arcFilename string
+
+//defaultArcFile point to the arc.yaml in the current directory arcli run
+const defaultArcFile = "./arc.yaml"
 
 // inspectCmd represents the inspect command
 var inspectCmd = &cobra.Command{
-	Use:   "inspect",
-	Short: "inspect an architecture from an arc yaml config file",
-	Long: `given the arc yaml config file, this command will ingest the content
+	Use:   "inspect <perspective> <targets>",
+	Short: "inspect an architecture from an arc yaml config file in the current source",
+	Long: `
+
+Given the arc yaml config file explicitly with -f option, this command will ingest the content
 and parse into an arc datastructure and trigger the gui to display the arch view 
-This command require an access to a arc-viz server, default is set to on localhost at port 10000`,
+This command require an access to a arc-viz server, default is set to on localhost at port 10000
+
+inspect take in 0 to n arguments, as follow:
+ - without any argument and option, inspect try to render a context diagram of the arc.yaml in the current directory
+ - with one argument, inspect try to render all elements that can be viewed at the given perspective
+ - with 2 or more arguments, inspect try to render the perspective specified by first argument for all elements given from the second arguments.
+Eg: 
+To render the container perspective of the amazingSystem1 and amazingSystem2 architecture in the arc.yaml file in the current directory
+
+	arcli inspect container amazingSystem1 amazingSystem2`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			fmt.Println("missing input arc yaml file")
-			return
-		}
-		arcFile, err := ioutil.ReadFile(args[0])
+		arcFile, err := ioutil.ReadFile(arcFilename)
 		if err != nil {
 			fmt.Println("fail to read arc yaml file")
 			return
@@ -54,6 +66,23 @@ This command require an access to a arc-viz server, default is set to on localho
 		if err != nil {
 			fmt.Println("fail to parse yaml content", err)
 			return
+		}
+		target := "all"
+		var pers model.PresentationPerspective = model.PresentationPerspective_CONTEXT
+		if len(args) > 0 {
+			switch args[0] {
+			case "context":
+				pers = model.PresentationPerspective_CONTEXT
+			case "container":
+				pers = model.PresentationPerspective_CONTAINER
+			case "component":
+				pers = model.PresentationPerspective_COMPONENT
+			case "code":
+				pers = model.PresentationPerspective_CODE
+			}
+		}
+		if len(args) > 1 {
+			target = strings.Join(args[1:], " ")
 		}
 		data, err := arc.Encode()
 		if err != nil {
@@ -74,6 +103,8 @@ This command require an access to a arc-viz server, default is set to on localho
 			VisualFormat: model.ArcVisualFormat_PNG,
 			DataFormat:   model.ArcDataFormat_ARC,
 			Data:         data,
+			Target:       target,
+			Perspective:  pers,
 		})
 		if err != nil {
 			log.Printf("Fail to render with error: %+v", err)
@@ -121,6 +152,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	inspectCmd.PersistentFlags().StringVar(&vizAddress, "viz", "localhost:10000", "URI of an acr-viz service (default to localhost:10000)")
+	inspectCmd.PersistentFlags().StringVarP(&arcFilename, "file", "f", defaultArcFile, "path to the arc.yaml file to inspect")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

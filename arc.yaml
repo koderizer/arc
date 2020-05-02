@@ -17,7 +17,7 @@ internal-systems:
   
     containers:
     - name: cli
-      runtime: cli-binary
+      runtime: arcli-binary
       technology: golang
       desc: "local utility to parse and build arc data to and from visualizations"
   

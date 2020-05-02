@@ -100,6 +100,9 @@ func c4ContextParse(arcData model.ArcType) (C4Context, error) {
 
 //C4ContainerPuml generate the C4 plantUml code from ArcType data to draw Container diagram for target System
 func C4ContainerPuml(arcData model.ArcType, target string) (string, error) {
+	if target == "all" {
+		return "", errors.New("Have not support all target yet")
+	}
 	var system *model.InternalSystem
 	for _, s := range arcData.InternalSystems {
 		if target == s.Name {

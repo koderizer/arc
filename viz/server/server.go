@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/koderizer/arc/model"
 	puml "github.com/koderizer/arc/viz/puml"
@@ -105,12 +106,31 @@ func (s *ArcViz) Render(ctx context.Context, in *model.RenderRequest) (*model.Ar
 		return nil, err
 	}
 
-	//conver to puml command
-	pumlSrc, err := puml.C4ContextPuml(arcData)
-	// pumlSrc, err := puml.C4ContainerPuml(arcData, "arc")
-	if err != nil {
-		log.Printf("Fail to generate PUML script from data: %+v", err)
-		return nil, err
+	var pumlSrc string
+	var err error
+	switch in.GetPerspective() {
+	case model.PresentationPerspective_CONTEXT:
+		pumlSrc, err = puml.C4ContextPuml(arcData)
+		if err != nil {
+			log.Printf("Fail to generate PUML script from data: %+v", err)
+			return nil, err
+		}
+	case model.PresentationPerspective_CONTAINER:
+		targets := strings.Split(in.GetTarget(), " ")
+		if len(targets) > 1 {
+			return nil, errors.New("Have not support multi target yet")
+		}
+		pumlSrc, err = puml.C4ContainerPuml(arcData, targets[0])
+		if err != nil {
+			log.Printf("Fail to generate PUML script from data: %+v", err)
+			return nil, err
+		}
+	case model.PresentationPerspective_COMPONENT:
+		return nil, errors.New("Not support Component yet")
+	case model.PresentationPerspective_CODE:
+		return nil, errors.New("Not support Code yet")
+	default:
+		return nil, errors.New("Invalid perspective")
 	}
 
 	//Send to puml rederer

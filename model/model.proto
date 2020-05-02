@@ -13,6 +13,15 @@ enum ArcDataFormat {
     PUML = 2;
 }
 
+enum PresentationPerspective {
+    CONTEXT = 0;
+    CONTAINER = 1;
+    COMPONENT = 2;
+    CODE = 4;
+}
+
+
+
 message RenderRequest {
     //Type of the data
     ArcDataFormat dataFormat = 1;
@@ -22,6 +31,12 @@ message RenderRequest {
 
     //data is the raw serialized byte array of the arc data type
     bytes data = 3;
+    
+    //perspective specify the level of architecture view to render
+    PresentationPerspective perspective = 4;
+
+    //target specify the specific element to render
+    string target = 5;
 }
 
 enum ArcVisualFormat {
