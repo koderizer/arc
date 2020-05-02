@@ -12,11 +12,26 @@ import (
 	"github.com/koderizer/arc/model"
 )
 
-//C4Model type hold all data structure to render different diagrams
-type C4Model struct {
+//C4Context type hold all data structure to render Context diagrams
+type C4Context struct {
 	Title     string
 	Arc       model.ArcType
 	Relations []C4Relation
+}
+
+//C4SystemContainer type hold data structure to render Container diagrams
+type C4SystemContainer struct {
+	SystemName string
+	Users      []model.User
+	Containers []model.Container
+	Relations  []C4Relation
+	Neighbors  []C4Neighbor
+}
+
+//C4Neighbor is the generic presentation for any partnering elements
+type C4Neighbor struct {
+	Name string
+	Desc string
 }
 
 //C4Relation is the data struct to draw relation in C4
@@ -41,7 +56,7 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 		log.Println("Fail to parse tpl file")
 		return "", err
 	}
-	contextTemplate = contextTemplate.Funcs(funcMap)
+	// contextTemplate = contextTemplate.Funcs(funcMap)
 	data, err := C4ContextParse(arcData)
 	if err != nil {
 		log.Println(err)
@@ -58,9 +73,171 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 }
 
 //C4ContextParse prepare the data structure to render C4 Context diagram
-func C4ContextParse(arcData model.ArcType) (C4Model, error) {
-	/* Map up all primary top path between 2 systems
-	by folding all relations into parent systems */
+func C4ContextParse(arcData model.ArcType) (C4Context, error) {
+	sys := relMap(arcData)
+	relations := make([]C4Relation, 0)
+	for k, v := range sys {
+		so := strings.Split(k, "-")
+		//Skip self-referencing
+		if so[0] == so[1] {
+			continue
+		}
+		relations = append(relations, C4Relation{
+			Subject:     so[0],
+			Pointer:     cleanRelation(strings.Join(v, ",")),
+			PointerTech: parseRelationTech(strings.Join(v, ",")),
+			Object:      so[1],
+		})
+		log.Println(relations)
+	}
+	arc := arcData
+	return C4Context{
+		Title:     fmt.Sprintf("System Context Diagram for %s", arcData.App),
+		Arc:       arc,
+		Relations: relations,
+	}, nil
+}
+
+//C4ContainerPuml generate the C4 plantUml code from ArcType data to draw Container diagram for target System
+func C4ContainerPuml(arcData model.ArcType, target string) (string, error) {
+	var system *model.InternalSystem
+	for _, s := range arcData.InternalSystems {
+		if target == s.Name {
+			system = &s
+			break
+		}
+	}
+	if system == nil {
+		return "", errors.New("Target system not found")
+	}
+
+	funcMap := template.FuncMap{
+		"CleanUp": cleanUp,
+		"CleanID": cleanID,
+	}
+	containerTemplate, err := template.New("c4ContainerTemplate").Funcs(funcMap).Parse(c4ContainerTemplate)
+	if err != nil {
+		log.Println("Fail to parse tpl file")
+		return "", err
+	}
+	data, err := c4ContainerParse(arcData, system)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	puml := []byte{}
+	wr := bytes.NewBuffer(puml)
+
+	if err = containerTemplate.ExecuteTemplate(wr, "c4ContainerTemplate", data); err != nil {
+		return "", err
+	}
+
+	return wr.String(), nil
+}
+
+//c4ContainerParse return the data to render Container diagram for given target system
+func c4ContainerParse(arcData model.ArcType, target *model.InternalSystem) (C4SystemContainer, error) {
+	if target == nil {
+		return C4SystemContainer{}, errors.New("nil target system pointer")
+	}
+
+	rels := make([]C4Relation, 0)
+	neighbors := make(map[string]string, 0)
+	exist := make(map[string]bool, 0)
+	for _, c := range target.Containers {
+		sid := target.Name + "." + c.Name
+		for _, r := range arcData.Relations {
+			// switch sid {
+			// case r.Object:
+			// 	if _, ok := neighbors[r.Subject]; !ok {
+			// 		neighbors[r.Subject] = sid
+			// 	}
+			// case r.Subject:
+			// 	if _, ok := neighbors[r.Object]; !ok {
+			// 		neighbors[r.Object] = sid
+			// 	}
+			// default:
+			// 	continue
+			// }
+			if r.Object == sid || r.Subject == sid {
+				o := strings.Split(r.Object, ".")
+				s := strings.Split(r.Subject, ".")
+				var internal bool
+				if o[0] == target.Name && s[0] == target.Name {
+					internal = true
+				}
+				if len(o) > 2 {
+					o = o[0:2]
+				}
+				if len(s) > 2 {
+					s = o[0:2]
+				}
+				ss := strings.Join(s, ".")
+				os := strings.Join(o, ".")
+				// k := ss + "-" + os
+
+				if !internal {
+					if sid == r.Object {
+						neighbors[r.Subject] = ""
+					} else {
+						neighbors[r.Object] = ""
+					}
+				}
+				if _, ok := exist[os+ss]; !ok {
+					rel := C4Relation{
+						Object:      os,
+						Subject:     ss,
+						Pointer:     cleanRelation(r.Pointer),
+						PointerTech: parseRelationTech(r.Pointer),
+					}
+					rels = append(rels, rel)
+					exist[os+ss] = true
+				}
+			}
+		}
+	}
+	nb := make([]C4Neighbor, 0)
+	for k := range neighbors {
+		needle := strings.Split(k, ".")[0]
+		log.Println(needle)
+		var desc string
+		for _, is := range arcData.InternalSystems {
+			if needle == is.Name {
+				desc = is.Desc
+				goto found
+			}
+		}
+		for _, es := range arcData.ExternalSystems {
+			if needle == es.Name {
+				desc = es.Desc
+				goto found
+			}
+		}
+		for _, us := range arcData.Users {
+			if needle == us.Name {
+				goto found
+			}
+		}
+	found:
+		if desc != "" {
+			nb = append(nb, C4Neighbor{
+				Name: needle,
+				Desc: desc,
+			})
+		}
+	}
+	return C4SystemContainer{
+		SystemName: target.Name,
+		Users:      arcData.Users,
+		Containers: target.Containers,
+		Relations:  rels,
+		Neighbors:  nb,
+	}, nil
+}
+
+/* Map up all primary top path between 2 systems
+by folding all relations into parent systems */
+func relMap(arcData model.ArcType) map[string][]string {
 	sys := make(map[string][]string)
 
 	for _, r := range arcData.Relations {
@@ -81,27 +258,7 @@ func C4ContextParse(arcData model.ArcType) (C4Model, error) {
 		}
 		sys[key] = append(sys[key], r.Pointer)
 	}
-	relations := make([]C4Relation, 0)
-	for k, v := range sys {
-		so := strings.Split(k, "-")
-		//Skip self-referencing
-		if so[0] == so[1] {
-			continue
-		}
-		relations = append(relations, C4Relation{
-			Subject:     so[0],
-			Pointer:     cleanRelation(strings.Join(v, ",")),
-			PointerTech: parseRelationTech(strings.Join(v, ",")),
-			Object:      so[1],
-		})
-		log.Println(relations)
-	}
-	arc := arcData
-	return C4Model{
-		Title:     fmt.Sprintf("System Context Diagram for %s", arcData.App),
-		Arc:       arc,
-		Relations: relations,
-	}, nil
+	return sys
 }
 
 //Utilities for C4 visualization parsing

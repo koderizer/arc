@@ -2,14 +2,14 @@ app: "arcs"
 desc: "Arc is a simple utility to author, view, inspect and update software architecture design"
 users:
   - name: dev
-    desc: "one who create software service"
+    role: "one who create software service"
   - name: product
-    desc: "one who design product"
+    role: "one who design product"
   - name: ops
-    desc: "one who run software service"
+    role: "one who run software service"
 
 internal-systems:
-  - name: "arc"
+  - name: arc
     desc: |
       Enable deloper to author, inspect and version control software systems design and code. 
       Allow integration with other Ci/Cd systems to build and auto verify software system
@@ -76,3 +76,5 @@ relations:
   - {s: deploy-service,p: verify deployment design,o: arc}
   - {s: arc.cli,p: download new project template from,o: git-server}
   - {s: arc.index,p:  pull source from,o: git-server}
+  - {s: arc.viz,p: persist arc graph,o: arc.db}
+  - {s: arc.cli,p: call (gRPC),o: arc.viz}

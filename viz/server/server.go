@@ -106,7 +106,8 @@ func (s *ArcViz) Render(ctx context.Context, in *model.RenderRequest) (*model.Ar
 	}
 
 	//conver to puml command
-	pumlSrc, err := puml.C4ContextPuml(arcData)
+	// pumlSrc, err := puml.C4ContextPuml(arcData)
+	pumlSrc, err := puml.C4ContainerPuml(arcData, "arc")
 	if err != nil {
 		log.Printf("Fail to generate PUML script from data: %+v", err)
 		return nil, err

@@ -1,6 +1,6 @@
 # C4 Model Diagrams
 
-The following samples are reproductions with C4-PlantUML from [C4 model core diagrams](http://c4model.com/#coreDiagrams) created by [Simon Brown](http://simonbrown.je/).
+The following samples are reproductions with C4-PlantUML from [C4 model core diagrams](http://C4Context.com/#coreDiagrams) created by [Simon Brown](http://simonbrown.je/).
 
 ## Core Diagrams
 

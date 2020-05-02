@@ -1,3 +1,5 @@
 -- Create ArcType yaml syntax validator:
  US: As a dev or product I would like arc-cli to split out syntatical error so that know if the arc file is valid or not. 
  
+-- Package ArcViz and PlantUML into single docker image:
+ US: As a user I would like to have a local arcviz service so that I can work offline 
