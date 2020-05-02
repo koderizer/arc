@@ -57,7 +57,7 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 		return "", err
 	}
 	// contextTemplate = contextTemplate.Funcs(funcMap)
-	data, err := C4ContextParse(arcData)
+	data, err := c4ContextParse(arcData)
 	if err != nil {
 		log.Println(err)
 		return "", err
@@ -72,8 +72,8 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 	return wr.String(), nil
 }
 
-//C4ContextParse prepare the data structure to render C4 Context diagram
-func C4ContextParse(arcData model.ArcType) (C4Context, error) {
+//c4ContextParse prepare the data structure to render C4 Context diagram
+func c4ContextParse(arcData model.ArcType) (C4Context, error) {
 	sys := relMap(arcData)
 	relations := make([]C4Relation, 0)
 	for k, v := range sys {
@@ -117,7 +117,7 @@ func C4ContainerPuml(arcData model.ArcType, target string) (string, error) {
 	}
 	containerTemplate, err := template.New("c4ContainerTemplate").Funcs(funcMap).Parse(c4ContainerTemplate)
 	if err != nil {
-		log.Println("Fail to parse tpl file")
+		log.Println("Fail to parse tpl")
 		return "", err
 	}
 	data, err := c4ContainerParse(arcData, system)
@@ -135,103 +135,111 @@ func C4ContainerPuml(arcData model.ArcType, target string) (string, error) {
 	return wr.String(), nil
 }
 
-//c4ContainerParse return the data to render Container diagram for given target system
+//c4ContainerParse return the data to render Container diagram for given target system and clip out all others.
 func c4ContainerParse(arcData model.ArcType, target *model.InternalSystem) (C4SystemContainer, error) {
 	if target == nil {
 		return C4SystemContainer{}, errors.New("nil target system pointer")
 	}
-
-	rels := make([]C4Relation, 0)
-	neighbors := make(map[string]string, 0)
-	exist := make(map[string]bool, 0)
+	/*
+		Get all containers in targeted system
+		Map the unique list of path to and from the containers
+		Clip all neighbor elements into their system level
+	*/
+	relMap := make(map[string]C4Relation, 0)
+	conMap := make(map[string]bool)
+	neiMap := make(map[string]bool)
 	for _, c := range target.Containers {
-		sid := target.Name + "." + c.Name
-		for _, r := range arcData.Relations {
-			// switch sid {
-			// case r.Object:
-			// 	if _, ok := neighbors[r.Subject]; !ok {
-			// 		neighbors[r.Subject] = sid
-			// 	}
-			// case r.Subject:
-			// 	if _, ok := neighbors[r.Object]; !ok {
-			// 		neighbors[r.Object] = sid
-			// 	}
-			// default:
-			// 	continue
-			// }
-			if r.Object == sid || r.Subject == sid {
-				o := strings.Split(r.Object, ".")
-				s := strings.Split(r.Subject, ".")
-				var internal bool
-				if o[0] == target.Name && s[0] == target.Name {
-					internal = true
-				}
-				if len(o) > 2 {
-					o = o[0:2]
-				}
-				if len(s) > 2 {
-					s = o[0:2]
-				}
-				ss := strings.Join(s, ".")
-				os := strings.Join(o, ".")
-				// k := ss + "-" + os
+		cid := target.Name + "." + c.Name
+		if _, ok := conMap[cid]; !ok {
+			conMap[cid] = true
+		}
+	}
+	for _, rel := range arcData.Relations {
+		_, isO := conMap[rel.Object]
+		_, isS := conMap[rel.Subject]
+		if !isO && !isS {
+			continue
+		}
 
-				if !internal {
-					if sid == r.Object {
-						neighbors[r.Subject] = ""
-					} else {
-						neighbors[r.Object] = ""
-					}
+		var nIDSys string
+		subjectChain := strings.Split(rel.Subject, ".")
+		subjectClip := subjectChain[0]
+		objectChain := strings.Split(rel.Object, ".")
+		objectClip := objectChain[0]
+
+		if _, ok := conMap[rel.Subject]; !ok {
+			nIDSys = subjectClip
+			if len(objectChain) >= 2 {
+				objectClip = strings.Join(objectChain[0:2], ".")
+			}
+		} else {
+			if _, ok := conMap[rel.Object]; !ok {
+				nIDSys = objectClip
+			} else {
+				if len(objectChain) >= 2 {
+					objectClip = strings.Join(objectChain[0:2], ".")
 				}
-				if _, ok := exist[os+ss]; !ok {
-					rel := C4Relation{
-						Object:      os,
-						Subject:     ss,
-						Pointer:     cleanRelation(r.Pointer),
-						PointerTech: parseRelationTech(r.Pointer),
-					}
-					rels = append(rels, rel)
-					exist[os+ss] = true
-				}
+			}
+			if len(subjectChain) >= 2 {
+				subjectClip = strings.Join(subjectChain[0:2], ".")
+			}
+		}
+
+		if nIDSys != target.Name {
+			if _, ok := neiMap[nIDSys]; !ok {
+				neiMap[nIDSys] = true
+			}
+		}
+
+		relID := subjectClip + "->" + objectClip
+		if _, ok := relMap[relID]; !ok {
+			relMap[relID] = C4Relation{
+				Object:      objectClip,
+				Subject:     subjectClip,
+				Pointer:     cleanRelation(rel.Pointer),
+				PointerTech: parseRelationTech(rel.Pointer),
 			}
 		}
 	}
-	nb := make([]C4Neighbor, 0)
-	for k := range neighbors {
-		needle := strings.Split(k, ".")[0]
-		log.Println(needle)
+	rels := make([]C4Relation, 0)
+	users := make([]model.User, 0)
+	for _, v := range relMap {
+		rels = append(rels, v)
+	}
+	neis := make([]C4Neighbor, 0)
+	for k := range neiMap {
 		var desc string
 		for _, is := range arcData.InternalSystems {
-			if needle == is.Name {
+			if k == is.Name {
 				desc = is.Desc
 				goto found
 			}
 		}
 		for _, es := range arcData.ExternalSystems {
-			if needle == es.Name {
+			if k == es.Name {
 				desc = es.Desc
 				goto found
 			}
 		}
 		for _, us := range arcData.Users {
-			if needle == us.Name {
-				goto found
+			if k == us.Name {
+				users = append(users, us)
 			}
 		}
 	found:
 		if desc != "" {
-			nb = append(nb, C4Neighbor{
-				Name: needle,
+			neis = append(neis, C4Neighbor{
+				Name: k,
 				Desc: desc,
 			})
 		}
 	}
 	return C4SystemContainer{
 		SystemName: target.Name,
-		Users:      arcData.Users,
+		Users:      users,
 		Containers: target.Containers,
 		Relations:  rels,
-		Neighbors:  nb,
+		Neighbors:  neis,
 	}, nil
 }
 
