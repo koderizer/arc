@@ -2,7 +2,8 @@ package puml
 
 const c4ContextTemplate = `
 @startuml
-!include https://raw.githubusercontent.com/koderizer/arc/master/viz/puml/C4-PlantUML/C4_Context.puml
+'!include https://raw.githubusercontent.com/koderizer/arc/master/viz/puml/C4-PlantUML/C4_Context.puml
+!include /C4-PlantUML/C4_Context.puml
 
 title {{.Title}} 
 {{range .Arc.Users}}
