@@ -18,6 +18,7 @@ enum PresentationPerspective {
     CONTAINER = 1;
     COMPONENT = 2;
     CODE = 4;
+    LANDSCAPE = 5;
 }
 
 
@@ -36,7 +37,7 @@ message RenderRequest {
     PresentationPerspective perspective = 4;
 
     //target specify the specific element to render
-    string target = 5;
+    repeated string target = 5;
 }
 
 enum ArcVisualFormat {

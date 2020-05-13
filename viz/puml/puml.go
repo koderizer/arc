@@ -43,7 +43,7 @@ type C4Relation struct {
 }
 
 //C4ContextPuml generate puml code for Context diagram using the given ArcType data
-func C4ContextPuml(arcData model.ArcType) (string, error) {
+func C4ContextPuml(arcData model.ArcType, targets ...string) (string, error) {
 	if arcData.App == "" || arcData.Desc == "" {
 		return "", errors.New("Context require Application name and description")
 	}
@@ -57,7 +57,7 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 		return "", err
 	}
 	// contextTemplate = contextTemplate.Funcs(funcMap)
-	data, err := c4ContextParse(arcData)
+	data, err := c4ContextParse(arcData, targets...)
 	if err != nil {
 		log.Println(err)
 		return "", err
@@ -72,12 +72,48 @@ func C4ContextPuml(arcData model.ArcType) (string, error) {
 	return wr.String(), nil
 }
 
-//c4ContextParse prepare the data structure to render C4 Context diagram
-func c4ContextParse(arcData model.ArcType) (C4Context, error) {
-	sys := relMap(arcData)
+//c4ContextParse prepare the data structure to render C4 full Landscape or targeted Context diagram
+func c4ContextParse(arcData model.ArcType, targets ...string) (C4Context, error) {
+	sys := relMap(arcData, targets...)
 	relations := make([]C4Relation, 0)
+	var arc model.ArcType
+	arc.InternalSystems = make([]model.InternalSystem, 0)
+	arc.ExternalSystems = make([]model.ExternalSystem, 0)
+	arc.Users = make([]model.User, 0)
+	ismap := make(map[string]model.InternalSystem, 0)
+	esmap := make(map[string]model.ExternalSystem, 0)
+	usmap := make(map[string]model.User)
+	if len(targets) == 0 {
+		arc = arcData
+	} else {
+		for _, t := range arcData.InternalSystems {
+			ismap[t.Name] = t
+		}
+		for _, t := range arcData.ExternalSystems {
+			esmap[t.Name] = t
+		}
+		for _, t := range arcData.Users {
+			usmap[t.Name] = t
+		}
+		arc.App = arcData.App
+		arc.Desc = arcData.Desc
+	}
+
 	for k, v := range sys {
 		so := strings.Split(k, "-")
+		if len(targets) > 0 {
+			for _, k := range so {
+				if e, ok := esmap[k]; ok {
+					arc.ExternalSystems = append(arc.ExternalSystems, e)
+				}
+				if u, ok := usmap[k]; ok {
+					arc.Users = append(arc.Users, u)
+				}
+				if i, ok := ismap[k]; ok {
+					arc.InternalSystems = append(arc.InternalSystems, i)
+				}
+			}
+		}
 		//Skip self-referencing
 		if so[0] == so[1] {
 			continue
@@ -88,9 +124,9 @@ func c4ContextParse(arcData model.ArcType) (C4Context, error) {
 			PointerTech: parseRelationTech(strings.Join(v, ",")),
 			Object:      so[1],
 		})
-		log.Println(relations)
+
 	}
-	arc := arcData
+
 	return C4Context{
 		Title:     fmt.Sprintf("System Context Diagram for %s", arcData.App),
 		Arc:       arc,
@@ -98,14 +134,14 @@ func c4ContextParse(arcData model.ArcType) (C4Context, error) {
 	}, nil
 }
 
-//C4ContainerPuml generate the C4 plantUml code from ArcType data to draw Container diagram for target System
-func C4ContainerPuml(arcData model.ArcType, target string) (string, error) {
-	if target == "all" {
-		return "", errors.New("Have not support all target yet")
+//C4ContainerPuml generate the C4 plantUml code from ArcType data to draw Container diagram for target Systems
+func C4ContainerPuml(arcData model.ArcType, targets ...string) (string, error) {
+	if len(targets) != 1 {
+		return "", errors.New("Have not support all targets or multi target yet")
 	}
 	var system *model.InternalSystem
 	for _, s := range arcData.InternalSystems {
-		if target == s.Name {
+		if targets[0] == s.Name {
 			system = &s
 			break
 		}
@@ -247,13 +283,25 @@ func c4ContainerParse(arcData model.ArcType, target *model.InternalSystem) (C4Sy
 }
 
 /* Map up all primary top path between 2 systems
-by folding all relations into parent systems */
-func relMap(arcData model.ArcType) map[string][]string {
+by folding all relations into parent targeted systems */
+func relMap(arcData model.ArcType, targets ...string) map[string][]string {
 	sys := make(map[string][]string)
-
+	tmap := make(map[string]int)
+	if len(targets) > 0 {
+		for _, k := range targets {
+			tmap[k] = 1
+		}
+	}
 	for _, r := range arcData.Relations {
 		s := strings.Split(r.Subject, ".")
 		o := strings.Split(r.Object, ".")
+		if len(targets) > 0 {
+			if _, oks := tmap[s[0]]; !oks {
+				if _, oko := tmap[o[0]]; !oko {
+					continue
+				}
+			}
+		}
 		key := fmt.Sprintf("%s-%s", cleanID(s[0]), cleanID(o[0]))
 		if _, ok := sys[key]; !ok {
 			sys[key] = []string{r.Pointer}
