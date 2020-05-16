@@ -22,7 +22,6 @@ import (
 	"log"
 	"os/exec"
 	"runtime"
-	"strings"
 
 	"github.com/koderizer/arc/model"
 	"github.com/spf13/cobra"
@@ -67,8 +66,8 @@ To render the container perspective of the amazingSystem1 and amazingSystem2 arc
 			fmt.Println("fail to parse yaml content", err)
 			return
 		}
-		target := "all"
-		var pers model.PresentationPerspective = model.PresentationPerspective_CONTEXT
+		targets := make([]string, 0)
+		var pers model.PresentationPerspective = model.PresentationPerspective_LANDSCAPE
 		if len(args) > 0 {
 			switch args[0] {
 			case "context":
@@ -82,7 +81,7 @@ To render the container perspective of the amazingSystem1 and amazingSystem2 arc
 			}
 		}
 		if len(args) > 1 {
-			target = strings.Join(args[1:], " ")
+			targets = args[1:]
 		}
 		data, err := arc.Encode()
 		if err != nil {
@@ -103,7 +102,7 @@ To render the container perspective of the amazingSystem1 and amazingSystem2 arc
 			VisualFormat: model.ArcVisualFormat_PNG,
 			DataFormat:   model.ArcDataFormat_ARC,
 			Data:         data,
-			Target:       target,
+			Target:       targets,
 			Perspective:  pers,
 		})
 		if err != nil {

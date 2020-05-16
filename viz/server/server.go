@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"strings"
 
 	"github.com/koderizer/arc/model"
 	puml "github.com/koderizer/arc/viz/puml"
@@ -109,18 +108,24 @@ func (s *ArcViz) Render(ctx context.Context, in *model.RenderRequest) (*model.Ar
 	var pumlSrc string
 	var err error
 	switch in.GetPerspective() {
-	case model.PresentationPerspective_CONTEXT:
+	case model.PresentationPerspective_LANDSCAPE:
 		pumlSrc, err = puml.C4ContextPuml(arcData)
 		if err != nil {
 			log.Printf("Fail to generate PUML script from data: %+v", err)
 			return nil, err
 		}
+	case model.PresentationPerspective_CONTEXT:
+		pumlSrc, err = puml.C4ContextPuml(arcData, in.GetTarget()...)
+		if err != nil {
+			log.Printf("Fail to generate PUML script from data: %+v", err)
+			return nil, err
+		}
 	case model.PresentationPerspective_CONTAINER:
-		targets := strings.Split(in.GetTarget(), " ")
+		targets := in.GetTarget()
 		if len(targets) > 1 {
 			return nil, errors.New("Have not support multi target yet")
 		}
-		pumlSrc, err = puml.C4ContainerPuml(arcData, targets[0])
+		pumlSrc, err = puml.C4ContainerPuml(arcData, targets...)
 		if err != nil {
 			log.Printf("Fail to generate PUML script from data: %+v", err)
 			return nil, err
