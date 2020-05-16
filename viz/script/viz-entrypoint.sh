@@ -1,5 +1,5 @@
 #!/bin/sh
 
-/usr/bin/viz &
+/usr/bin/arcviz &
 
 /docker-entrypoint.sh $@
