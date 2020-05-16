@@ -40,7 +40,7 @@ dockers:
     - "koderizer/arcviz:latest"
     - "koderizer/arcviz:{{ .Tag }}"
 
-    dockerfile: ./viz/Dockerfile
+    dockerfile: ./Dockerfile.release
 
     extra_files:
     - viz/puml/C4-PlantUML
