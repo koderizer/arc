@@ -11,6 +11,7 @@ builds:
 brews:
   -
     # Github repository to push the tap to.
+    name: arcli
     github:
       owner: koderizer
       name: homebrew-arc

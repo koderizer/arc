@@ -8,9 +8,9 @@ RUN GOOS=linux go build -o arcviz viz/main.go
 FROM plantuml/plantuml-server:jetty
 USER root
 COPY --from=builder /build/viz/puml/C4-PlantUML /C4-PlantUML
-COPY --from=builder /build/arcviz /usr/bin/viz
+COPY --from=builder /build/arcviz /usr/bin/arcviz
 COPY --from=builder /build/viz/script/viz-entrypoint.sh /viz-entrypoint.sh
-RUN chmod 755 /usr/bin/viz
+RUN chmod 755 /usr/bin/arcviz
 RUN chmod 755 /viz-entrypoint.sh
 
 EXPOSE 10000
