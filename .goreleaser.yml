@@ -1,112 +1,49 @@
 # .goreleaser.yml
 builds:
-  # You can have multiple builds defined as a yaml list
   -
-    # ID of the build.
-    # Defaults to the project name.
     id: "arc-cli"
-
-    # Path to project's (sub)directory containing Go code.
-    # This is the working directory for the Go build command(s).
-    # Default is `.`.
     dir: cli 
-
-    # Path to main.go file or main package.
-    # Default is `.`.
-    main: ./main.go
-
-    # Binary name.
-    # Can be a path (e.g. `bin/app`) to wrap the binary in a directory.
-    # Default is the name of the project directory.
     binary: arcli
-
-    # Custom flags templates.
-    # Default is empty.
-    # flags:
-
-    # Custom ldflags templates.
-    # Default is `-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser`.
-
-    # Custom environment variables to be set during the builds.
-    # Default is empty.
-    # env:
-
-    # GOOS list to build for.
-    # For more info refer to: https://golang.org/doc/install/source#environment
-    # Defaults are darwin and linux.
     goos:
       - darwin
       - linux
       - windows
-
+  - 
+    id: "arc-viz"
+    dir: viz
+    binary: viz
+    goos:
+      - linux
 brews:
   -
-    # Name template of the recipe
-    # Default to project name
-
     # Github repository to push the tap to.
     github:
       owner: koderizer
       name: homebrew-arc
 
-    # Template for the url which is determined by the given Token (github or gitlab)
-    # Default for github is "https://github.com/<repo_owner>/<repo_name>/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    # Default for gitlab is "https://gitlab.com/<repo_owner>/<repo_name>/uploads/{{ .ArtifactUploadHash }}/{{ .ArtifactName }}"
-    # url_template: "http://github.mycompany.com/foo/bar/releases/{{ .Tag }}/{{ .ArtifactName }}"
-
-    # Allows you to set a custom download strategy. Note that you'll need
-    # to implement the strategy and add it to your tap repository.
-    # Example: https://docs.brew.sh/Formula-Cookbook#specifying-the-download-strategy-explicitly
-    # Default is empty.
-    # download_strategy: CurlDownloadStrategy.
-
-    # Allows you to add a custom require_relative at the top of the formula template
-    # Default is empty
-    # custom_require: custom_download_strategy
-
-    # Git author used to commit to the repository.
     commit_author:
       name: koderizer
       email: vuongthuong@gmail.com
 
-    # Folder inside the repository to put the formula.
-    # Default is the root folder.
-
-    # Caveats for the user of your binary.
-    # Default is empty.
-
-    # Your app's homepage.
-    # Default is empty.
-    # homepage: "https://example.com/"
-
-    # Your app's description.
-    # Default is empty.
     description: "Software architecture made simple"
 
-    # Setting this will prevent goreleaser to actually try to commit the updated
-    # formula - instead, the formula file will be stored on the dist folder only,
-    # leaving the responsibility of publishing it to the user.
-    # If set to auto, the release will not be uploaded to the homebrew tap
-    # in case there is an indicator for prerelease in the tag e.g. v1.0.0-rc1
-    # Default is false.
-    # skip_upload: true
+dockers:
+  -
+    goos: linux
+    goarch: amd64
+    binaries:
+    - viz
+    builds:
+    - arc-viz
+    # Templates of the Docker image names.
+    image_templates:
+    - "koderizer/arcviz:latest"
+    - "koderizer/arcviz:{{ .Tag }}"
+    - "koderizer/arcviz:{{ .Tag }}-{{ .Env.GO_VERSION }}"
+    - "koderizer/arcviz:v{{ .Major }}"
 
-    # Custom block for brew.
-    # Can be used to specify alternate downloads for devel or head releases.
-    # Default is empty.
+    dockerfile: ./viz/Dockerfile
 
-    # Packages your package depends on.
-    # dependencies:
-      # - docker
-
-    # Specify for packages that run as a service.
-    # Default is empty.
-
-    # So you can `brew test` your formula.
-    # Default is empty.
-    # test: |
-      # system "#{bin}/program --version"
-      # ...
-
-    # Custom install script for brew.
-    # Default is 'bin.install "program"'.
+    extra_files:
+    - viz/puml/C4-PlantUML
+    - viz/script
