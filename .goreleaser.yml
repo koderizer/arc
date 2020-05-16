@@ -39,8 +39,6 @@ dockers:
     image_templates:
     - "koderizer/arcviz:latest"
     - "koderizer/arcviz:{{ .Tag }}"
-    - "koderizer/arcviz:{{ .Tag }}-{{ .Env.GO_VERSION }}"
-    - "koderizer/arcviz:v{{ .Major }}"
 
     dockerfile: ./viz/Dockerfile
 
