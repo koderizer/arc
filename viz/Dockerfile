@@ -2,6 +2,7 @@ FROM plantuml/plantuml-server:jetty
 USER root
 COPY puml/C4-PlantUML /C4-PlantUML
 COPY script/viz-entrypoint.sh /viz-entrypoint.sh
+COPY viz /usr/bin/viz
 RUN chmod 755 /usr/bin/viz
 RUN chmod 755 /viz-entrypoint.sh
 
