@@ -1,7 +1,7 @@
 FROM plantuml/plantuml-server:jetty
 USER root
-COPY puml/C4-PlantUML /C4-PlantUML
-COPY script/viz-entrypoint.sh /viz-entrypoint.sh
+COPY viz/puml/C4-PlantUML /C4-PlantUML
+COPY viz/script/viz-entrypoint.sh /viz-entrypoint.sh
 COPY arcviz /usr/bin/arcviz
 RUN chmod 755 /usr/bin/arcviz
 RUN chmod 755 /viz-entrypoint.sh
