@@ -8,12 +8,6 @@ builds:
       - darwin
       - linux
       - windows
-  - 
-    id: "arc-viz"
-    dir: viz
-    binary: arcviz
-    goos:
-      - linux
 brews:
   -
     # Github repository to push the tap to.
@@ -26,22 +20,3 @@ brews:
       email: vuongthuong@gmail.com
 
     description: "Software architecture made simple"
-
-dockers:
-  -
-    goos: linux
-    goarch: amd64
-    binaries:
-    - arcviz
-    builds:
-    - arc-viz
-    # Templates of the Docker image names.
-    image_templates:
-    - "koderizer/arcviz:latest"
-    - "koderizer/arcviz:{{ .Tag }}"
-
-    dockerfile: ./Dockerfile.release
-
-    extra_files:
-    - viz/puml/C4-PlantUML
-    - viz/script
