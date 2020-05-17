@@ -1,3 +1,5 @@
+-- Code clean up with proper test coverage
+
 -- Create ArcType yaml syntax validator
  US: As a dev or product I would like arc-cli to split out syntatical error so that know if the arc file is valid or not. 
  

@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
+Copyright © 2020 Koderizer
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -38,19 +38,19 @@ const defaultArcFile = "./arc.yaml"
 // inspectCmd represents the inspect command
 var inspectCmd = &cobra.Command{
 	Use:   "inspect <perspective> <targets>",
-	Short: "inspect an architecture from an arc yaml config file in the current source",
+	Short: "Inspect an architecture from an arc yaml config file in the current source",
 	Long: `
 
 Given the arc yaml config file explicitly with -f option, this command will ingest the content
-and parse into an arc datastructure and trigger the gui to display the arch view 
-This command require an access to a arc-viz server, default is set to on localhost at port 10000
+and parse into an arc data structure and trigger your browser to display the architecture view requested
 
 inspect take in 0 to n arguments, as follow:
- - without any argument and option, inspect try to render a context diagram of the arc.yaml in the current directory
- - with one argument, inspect try to render all elements that can be viewed at the given perspective
- - with 2 or more arguments, inspect try to render the perspective specified by first argument for all elements given from the second arguments.
+ - without any argument and option, inspect try to render a Landscape perspective for the software application specified in arc.yaml in the current directory
+ - with one argument, inspect try to render all elements that can be viewed at any one of the following perspective: landscape,context,container,component
+ - with 2 or more arguments, inspect try to render the perspective specified by first argument for all elements given from the second arguments onward.
+
 Eg: 
-To render the container perspective of the amazingSystem1 and amazingSystem2 architecture in the arc.yaml file in the current directory
+To render the Container perspective of your amazingSystem1 and amazingSystem2 as specified in an arc.yaml file in the current directory
 
 	arcli inspect container amazingSystem1 amazingSystem2`,
 
@@ -78,6 +78,8 @@ To render the container perspective of the amazingSystem1 and amazingSystem2 arc
 				pers = model.PresentationPerspective_COMPONENT
 			case "code":
 				pers = model.PresentationPerspective_CODE
+			case "landscape":
+				pers = model.PresentationPerspective_LANDSCAPE
 			}
 		}
 		if len(args) > 1 {
@@ -146,14 +148,9 @@ func open(url string) error {
 func init() {
 	rootCmd.AddCommand(inspectCmd)
 
-	// Here you will define your flags and configuration settings.
-
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	inspectCmd.PersistentFlags().StringVar(&vizAddress, "viz", "localhost:10000", "URI of an acr-viz service (default to localhost:10000)")
-	inspectCmd.PersistentFlags().StringVarP(&arcFilename, "file", "f", defaultArcFile, "path to the arc.yaml file to inspect")
+	inspectCmd.PersistentFlags().StringVar(&vizAddress, "viz", "localhost:10000", "URI of an acrviz app")
+	inspectCmd.PersistentFlags().StringVarP(&arcFilename, "file", "f", defaultArcFile, "Path to the arc.yaml file to inspect")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// inspectCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

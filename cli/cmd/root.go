@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
+Copyright © 2020 Koderizer
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,17 +31,21 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "arcli",
 	Short: "Command line to interact with software architecture model configuration and view",
-	Long: `arc allow you to inspect and architecture visually by passing in an yaml config file 
-	You can also interact with the arc system api to get updated information on the overall application architecture 
-	system you are working with`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Long: ` 
+arcli allow you to inspect architecture visually by passing in a yaml config file 
+
+it is the client command line interface to an arcviz server, and easy way to quickly start is: 
+	
+	docker run -d -p 10000:10000 -p 8080:8080 koderizer/arcviz:latest
+`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute(versions []string) {
+	version = versions[0]
+	commit = versions[1]
+	date = versions[2]
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -51,14 +55,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.arcli)")
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cli.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
@@ -75,9 +73,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".cli" (without extension).
+		// Search config in home directory with name ".arcli" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".arc")
+		viper.SetConfigName(".arcli")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

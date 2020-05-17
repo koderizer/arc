@@ -4,6 +4,8 @@ builds:
     id: "arc-cli"
     dir: cli 
     binary: arcli
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
     goos:
       - darwin
       - linux

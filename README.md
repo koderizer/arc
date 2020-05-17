@@ -17,7 +17,7 @@ The workflow using arc utilities is:
 
 - Install and run arcviz on your machine. You need  __Docker__ as it is the only option now.
 ```
-    docker run -d -p 10000:10000 -p8080:8080 koderizer/arcviz:latest
+    docker run -d -p 10000:10000 -p 8080:8080 koderizer/arcviz:latest
 ```
 
 - Install arcli utility, via Homebrew on Mac as it is the only convenient option now:
@@ -30,7 +30,7 @@ brew install arcli
 _Build from source or download from release package and put to your bin path is another option_
 
 ## Usage
-    arcli -h
+    arcli help
 
 
 ## Example
@@ -53,14 +53,14 @@ internal-systems:
       desc: "local utility to parse and build arc data to and from visualizations"
   
     - name: viz
-      runtime: docker-golang-java
-      technology: "gRPC service, plantuml"
+      runtime: docker-jetty
+      technology: "gRPC golang, plantuml"
       desc: "render visualization of archtecture design given a arc data blob specifications"
       components:
       - name: arcviz
         desc: grpc server to structure the layout into markup for renderer
-      - name: plantuml-render
-        desc: vizualize using server using plantuml
+      - name: plantuml-renderer
+        desc: vizualize server using plantuml
 
 external-systems:
   - name: dev-ide
