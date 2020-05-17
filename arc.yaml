@@ -16,17 +16,17 @@ internal-systems:
       Enable deloper to author, inspect and version control software systems design and code. 
   
     containers:
-    - name: cli
+    - name: arcli
       runtime: arcli-binary
       technology: golang
       desc: "local utility to parse and build arc data to and from visualizations"
   
     - name: gui
-      runtime: ecma-engines
+      runtime: browser
       technology: javascript-spa 
       desc: "Web base user interface to author and inspect software architecture design"
     
-    - name: viz
+    - name: arcviz
       runtime: docker-java
       technology: gRPC service, plantuml
       desc: "render visualization of archtecture design given a arc data blob specifications"
@@ -70,19 +70,23 @@ external-systems:
     desc: "software developement editor and integrated environment"
 
 relations:
+#Usecases:
   - {s: dev,p: design and develop software,o: arc}
   - {s: product,p: view system design,o: arc.gui}
   - {s: ops,p: inspect containers layout,o: arc.gui}
   - {s: dev,p: author containers design,o: arc.gui}
   - {s: sec,p: inspect defendable quality of system,o: arc-intel}
 
-  - {s: arc.cli,p: serve to local browser,o: arc.gui}
-  - {s: arc.cli,p: call (https:restful),o: arc-intel.api.update}
-  - {s: arc.cli,p: download new project template from,o: git-server}
-  - {s: arc.cli,p: call (gRPC),o: arc.viz}
-  - {s: arc.viz,p: persist arc graph (https:restful),o: arc-intel.api}
+#Modular dependency:
+  - {s: arc.arcli,p: serve to local browser,o: arc.gui}
+  - {s: arc.arcli,p: call (https:restful),o: arc-intel.api.update}
+  - {s: arc.arcli,p: download new project template from,o: git-server}
+  - {s: arc.arcli,p: call (gRPC),o: arc.arcviz}
+  - {s: arc.arcviz,p: persist arc graph (https:restful),o: arc-intel.api}
   - {s: arc.gui,p: call (https:restful),o: arc-intel.api.inspector}
-  - {s: dev-ide,p: integrate (pluggin),o: arc.cli}
+
+#Extern integrations:
+  - {s: dev-ide,p: integrate (pluggin),o: arc.arcli}
   - {s: build-service,p: update system model,o: arc-intel.api.update}
   - {s: deploy-service,p: verify deployment design,o: arc-intel}
   - {s: arc-intel.index,p:  pull source from,o: git-server}

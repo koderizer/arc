@@ -9,7 +9,7 @@ It is the utility to adopt the [C4model](https://c4model.com) architecture desig
 The objective is to design and deliver software product with clear architecture and clean working code, with the least amount of effort and duplicating cognitive workload. 
 
 The workflow using arc utilities is: 
- - Start note down architecture model of your app on a yaml file named arc.yml.
+ - Start note down architecture model of your app on a yaml file named arc.yaml.
  - Use arcli to inspect and arcviz service to visualize the architecture in different views such as Landscape, Context, Containers or Component.
  - Share the visualization through a centrally hosted arcviz server if your team fancy.  
 
@@ -68,8 +68,8 @@ external-systems:
 
 relations:
   - { s: dev, p: design and develop software, o: arc}
-  - { s: arc.cli, p: send render request (gRPC), o: arc.viz}
-  - { s: dev-ide, p: integrate, o: arc.cli}
+  - { s: arc.arcli, p: send render request (gRPC), o: arc.arcviz}
+  - { s: dev-ide, p: integrate, o: arc.arcli}
 ```
 
 to visualize this, simply run from the same directory this file is in:

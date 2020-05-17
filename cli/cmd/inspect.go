@@ -77,9 +77,13 @@ To render the Container perspective of your amazingSystem1 and amazingSystem2 as
 			case "component":
 				pers = model.PresentationPerspective_COMPONENT
 			case "code":
-				pers = model.PresentationPerspective_CODE
+				log.Println("Not supported for now. Make simple readable code")
+				return
 			case "landscape":
 				pers = model.PresentationPerspective_LANDSCAPE
+			default:
+				log.Printf("Perspective %s not supported, please indicate one of: landscape, context, container, component", args[0])
+				return
 			}
 		}
 		if len(args) > 1 {

@@ -56,7 +56,6 @@ func C4ContextPuml(arcData model.ArcType, targets ...string) (string, error) {
 		log.Println("Fail to parse tpl file")
 		return "", err
 	}
-	// contextTemplate = contextTemplate.Funcs(funcMap)
 	data, err := c4ContextParse(arcData, targets...)
 	if err != nil {
 		log.Println(err)
@@ -100,7 +99,7 @@ func c4ContextParse(arcData model.ArcType, targets ...string) (C4Context, error)
 	}
 
 	for k, v := range sys {
-		so := strings.Split(k, "-")
+		so := strings.Split(k, "+")
 		if len(targets) > 0 {
 			for _, k := range so {
 				if e, ok := esmap[k]; ok {
@@ -126,9 +125,14 @@ func c4ContextParse(arcData model.ArcType, targets ...string) (C4Context, error)
 		})
 
 	}
-
+	var title string
+	if len(targets) != 0 && len(targets) != len(arcData.InternalSystems) {
+		title = fmt.Sprintf("System Context view for: %s", strings.Join(targets, ", "))
+	} else {
+		title = fmt.Sprintf("System Landscape view for: %s", arcData.App)
+	}
 	return C4Context{
-		Title:     fmt.Sprintf("System Context Diagram for %s", arcData.App),
+		Title:     title,
 		Arc:       arc,
 		Relations: relations,
 	}, nil
@@ -302,7 +306,7 @@ func relMap(arcData model.ArcType, targets ...string) map[string][]string {
 				}
 			}
 		}
-		key := fmt.Sprintf("%s-%s", cleanID(s[0]), cleanID(o[0]))
+		key := fmt.Sprintf("%s+%s", s[0], o[0])
 		if _, ok := sys[key]; !ok {
 			sys[key] = []string{r.Pointer}
 			continue

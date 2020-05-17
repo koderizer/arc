@@ -1,0 +1,34 @@
+app: arcs
+desc: "Arc is a simple utility to author, view, inspect and update software architecture design"
+users:
+  - name: dev
+    role: "one who create software service"
+
+internal-systems:
+  - name: arc
+    desc: "Enable deloper to author, inspect and version control software systems design and code."
+  
+    containers:
+    - name: arcli
+      runtime: binary-cli
+      technology: golang
+      desc: "local utility to parse and build arc data to and from visualizations"
+  
+    - name: arcviz
+      runtime: docker-golang-java
+      technology: "gRPC service, plantuml"
+      desc: "render visualization of archtecture design given a arc data blob specifications"
+      components:
+      - name: arcviz-grpc
+        desc: grpc server to structure the layout into markup for renderer
+      - name: plantuml-render
+        desc: vizualize using server using plantuml
+
+external-systems:
+  - name: dev-ide
+    desc: software developement editor and integrated environment
+
+relations:
+  - { s: dev, p: design and develop software, o: arc}
+  - { s: arc.arcli, p: send render request (gRPC), o: arc.arcviz}
+  - { s: dev-ide, p: integrate, o: arc.arcli}
