@@ -43,7 +43,7 @@ message RenderRequest {
 enum ArcVisualFormat {
     PNG = 0;
     SVG = 1;
-    PDF = 3;
+    PDF = 2;
 }
 message ArcPresentation {
     //Format of the presentation 
