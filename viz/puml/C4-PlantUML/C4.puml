@@ -5,16 +5,23 @@
 ' ##################################
 
 !define ELEMENT_FONT_COLOR #FFFFFF
+!define SOLARIZED_COLOR_BASE0 #657b83
+!define SOLARIZED_COLOR_BASE1 #93A1A1
+!define SOLARIZED_COLOR_BASE3 #fdf6e3
+!define SOLARIZED_COLOR_ORANGE #cb4b16
+!define SOLARIZED_COLOR_BLUE #268BD2
 
 ' Styling
 ' ##################################
 
 !define TECHN_FONT_SIZE 12
 
+skinparam defaultFontColor SOLARIZED_COLOR_BASE0
 skinparam defaultTextAlignment center
 
 skinparam wrapWidth 200
 skinparam maxMessageSize 150
+skinparam backgroundColor SOLARIZED_COLOR_BASE3 
 
 skinparam rectangle {
     StereotypeFontSize 12
@@ -27,28 +34,24 @@ skinparam database {
 }
 
 skinparam Arrow {
-    Color #666666
-    FontColor #666666
+    Color SOLARIZED_COLOR_BASE1
+    FontColor SOLARIZED_COLOR_BASE1
     FontSize 12
 }
 
 skinparam rectangle<<boundary>> {
     Shadowing false
     StereotypeFontSize 0
-    FontColor #444444
-    BorderColor #444444
+    FontColor SOLARIZED_COLOR_ORANGE
+    BorderColor SOLARIZED_COLOR_ORANGE
     BorderStyle dashed
 }
 
 ' Layout
 ' ##################################
-
-!definelong LAYOUT_AS_SKETCH
-skinparam backgroundColor #EEEBDC
-skinparam handwritten true
 skinparam defaultFontName "Comic Sans MS"
-center footer <font color=red>Warning:</font> Created for discussion, needs to be validated
-!enddefinelong
+skinparam arrowThickness 2
+skinparam RoundCorner 50
 
 !define LAYOUT_TOP_DOWN top to bottom direction
 !define LAYOUT_LEFT_RIGHT left to right direction
