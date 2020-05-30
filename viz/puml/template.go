@@ -2,7 +2,6 @@ package puml
 
 const c4ContextTemplate = `
 @startuml
-'!include https://raw.githubusercontent.com/koderizer/arc/master/viz/puml/C4-PlantUML/C4_Context.puml
 !include /C4-PlantUML/C4_Context.puml
 
 title {{.Title}} 
@@ -29,7 +28,7 @@ Rel({{.Subject | CleanID}},{{.Object | CleanID}},"{{.Pointer}}")
 
 const c4ContainerTemplate = `
 @startuml
-!includeurl https://raw.githubusercontent.com/koderizer/arc/master/viz/puml/C4-PlantUML/C4_Container.puml
+!include /C4-PlantUML/C4_Container.puml
 
 title {{.Title}}
 
