@@ -1,9 +1,7 @@
 package server
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -12,7 +10,8 @@ import (
 	"regexp"
 
 	"github.com/koderizer/arc/model"
-	puml "github.com/koderizer/arc/viz/puml"
+	"github.com/koderizer/arc/viz/analyzer"
+	"github.com/koderizer/arc/viz/puml"
 )
 
 const renderTimeoutSecond = 3
@@ -93,51 +92,34 @@ func (s *ArcViz) doPumlRender(ctx context.Context, pumlSrc string, format model.
 //Render implement the rendering through PUML
 func (s *ArcViz) Render(ctx context.Context, in *model.RenderRequest) (*model.ArcPresentation, error) {
 
-	if in.DataFormat != model.ArcDataFormat_ARC {
-		return nil, errors.New("Unsupported data format, this server only support ARC data format")
-	}
-
-	//decode the data
-	var arcData model.ArcType
-	dec := gob.NewDecoder(bytes.NewBuffer(in.Data))
-	if err := dec.Decode(&arcData); err != nil {
-		log.Printf("Fail to decode data: %v", err)
+	g, err := analyzer.Process(ctx, in)
+	if err != nil {
 		return nil, err
 	}
-
-	var pumlSrc string
-	var err error
-	switch in.GetPerspective() {
-	case model.PresentationPerspective_LANDSCAPE:
-		pumlSrc, err = puml.C4ContextPuml(arcData)
-		if err != nil {
-			log.Printf("Fail to generate PUML script from data: %+v", err)
-			return nil, err
-		}
-	case model.PresentationPerspective_CONTEXT:
-		pumlSrc, err = puml.C4ContextPuml(arcData, in.GetTarget()...)
-		if err != nil {
-			log.Printf("Fail to generate PUML script from data: %+v", err)
-			return nil, err
-		}
-	case model.PresentationPerspective_CONTAINER:
-		targets := in.GetTarget()
-		if len(targets) > 1 {
-			return nil, errors.New("Have not support multi target yet")
-		}
-		pumlSrc, err = puml.C4ContainerPuml(arcData, targets...)
-		if err != nil {
-			log.Printf("Fail to generate PUML script from data: %+v", err)
-			return nil, err
-		}
-	case model.PresentationPerspective_COMPONENT:
-		return nil, errors.New("Not support Component yet")
-	case model.PresentationPerspective_CODE:
-		return nil, errors.New("Not support Code yet")
-	default:
-		return nil, errors.New("Invalid perspective")
+	arc := model.ArcType{
+		App:  g.Arc.App,
+		Desc: g.Arc.Desc,
 	}
-
+	arc.InternalSystems, err = g.GetInternalSystems()
+	if err != nil {
+		return nil, err
+	}
+	arc.ExternalSystems, err = g.GetExternalSystems()
+	if err != nil {
+		return nil, err
+	}
+	arc.Relations, err = g.GetRelations()
+	if err != nil {
+		return nil, err
+	}
+	arc.Users, err = g.GetUsers()
+	if err != nil {
+		return nil, err
+	}
+	pumlSrc, err := puml.C4ContextPuml(arc, in.GetTarget()...)
+	if err != nil {
+		return nil, err
+	}
 	//Send to puml rederer
 	output, err := s.doPumlRender(ctx, pumlSrc, in.VisualFormat)
 	if err != nil {

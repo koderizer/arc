@@ -78,16 +78,16 @@ relations:
   - {s: sec,p: inspect defendable quality of system,o: arc-intel}
 
 #Modular dependency:
-  - {s: arc.arcli,p: serve to local browser,o: arc.gui}
-  - {s: arc.arcli,p: call (https:restful),o: arc-intel.api.update}
-  - {s: arc.arcli,p: download new project template from,o: git-server}
-  - {s: arc.arcli,p: call (gRPC),o: arc.arcviz}
-  - {s: arc.arcviz,p: persist arc graph (https:restful),o: arc-intel.api}
-  - {s: arc.gui,p: call (https:restful),o: arc-intel.api.inspector}
+#   - {s: arc.arcli,p: serve to local browser,o: arc.gui}
+#   - {s: arc.arcli,p: call (https:restful),o: arc-intel.api.update}
+#   - {s: arc.arcli,p: download new project template from,o: git-server}
+#   - {s: arc.arcli,p: call (gRPC),o: arc.arcviz}
+#   - {s: arc.arcviz,p: persist arc graph (https:restful),o: arc-intel.api}
+#   - {s: arc.gui,p: call (https:restful),o: arc-intel.api.inspector}
 
-#Extern integrations:
-  - {s: dev-ide,p: integrate (pluggin),o: arc.arcli}
-  - {s: build-service,p: update system model,o: arc-intel.api.update}
-  - {s: deploy-service,p: verify deployment design,o: arc-intel}
-  - {s: arc-intel.index,p:  pull source from,o: git-server}
-  - {s: arc-intel.api,p: persist data,o: arc-intel.db}
+# #Extern integrations:
+#   - {s: dev-ide,p: integrate (pluggin),o: arc.arcli}
+#   - {s: build-service,p: update system model,o: arc-intel.api.update}
+#   - {s: deploy-service,p: verify deployment design,o: arc-intel}
+#   - {s: arc-intel.index,p:  pull source from,o: git-server}
+#   - {s: arc-intel.api,p: persist data,o: arc-intel.db}

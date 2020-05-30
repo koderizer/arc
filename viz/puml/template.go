@@ -31,16 +31,22 @@ const c4ContainerTemplate = `
 @startuml
 !includeurl https://raw.githubusercontent.com/koderizer/arc/master/viz/puml/C4-PlantUML/C4_Container.puml
 
+title {{.Title}}
+
 LAYOUT_TOP_DOWN
 {{range .Users}}
 Person({{.Name | CleanID}}, "{{.Name}}")
 {{end}}
-{{$sys := .SystemName | CleanID}}
-System_Boundary({{.SystemName}}, "{{.SystemName}}"){
-{{range .Containers}}
+
+{{range $k, $v := $.Systems}}
+{{$sys := $k | CleanID}}
+System_Boundary({{$sys}}, "{{$sys}}"){
+{{range $v}}
 	Container({{$sys}}.{{.Name | CleanID}}, "{{.Name}}", "{{.Technology}}", "{{.Desc | CleanUp}}")
 {{end}}
 }
+{{end}}
+
 {{range .Neighbors}}
 System_Ext({{.Name | CleanID}}, "{{.Name}}", "{{.Desc | CleanUp}}")
 {{end}}

@@ -165,8 +165,6 @@ func open(url string) error {
 func init() {
 	rootCmd.AddCommand(inspectCmd)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
 	inspectCmd.PersistentFlags().StringVar(&vizAddress, "viz", "localhost:10000", "URI of an acrviz app")
 	inspectCmd.PersistentFlags().StringVarP(&arcFilename, "file", "f", defaultArcFile, "Path to the arc.yaml file to inspect")
 	inspectCmd.PersistentFlags().StringVarP(&outFormat, "outform", "o", defaultOutForm, "Output format (png | svg)")
