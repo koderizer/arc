@@ -116,9 +116,28 @@ func (s *ArcViz) Render(ctx context.Context, in *model.RenderRequest) (*model.Ar
 	if err != nil {
 		return nil, err
 	}
-	pumlSrc, err := puml.C4ContextPuml(arc, in.GetTarget()...)
-	if err != nil {
-		return nil, err
+	var pumlSrc string
+	switch g.Pers {
+	case analyzer.Landscape:
+		pumlSrc, err = puml.C4ContextPuml(arc)
+		if err != nil {
+			return nil, err
+		}
+	case analyzer.Context:
+		pumlSrc, err = puml.C4ContextPuml(arc, in.GetTarget()...)
+		if err != nil {
+			return nil, err
+		}
+	case analyzer.Container:
+		pumlSrc, err = puml.C4ContainerPuml(arc, in.GetTarget()...)
+		if err != nil {
+			return nil, err
+		}
+	case analyzer.Component:
+	case analyzer.Code:
+	default:
+		return nil, errors.New("Not supported perspective")
+
 	}
 	//Send to puml rederer
 	output, err := s.doPumlRender(ctx, pumlSrc, in.VisualFormat)

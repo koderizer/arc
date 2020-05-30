@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/koderizer/arc/model"
 	"github.com/yourbasic/graph"
@@ -15,11 +16,12 @@ import (
 
 //Perspective type
 const (
-	Landscape = 0
-	Context   = 1
-	Container = 2
-	Component = 3
-	Code      = 4
+	Landscape                = 0
+	Context                  = 1
+	Container                = 2
+	Component                = 3
+	Code                     = 4
+	DefaultDependencyPointer = "Depend on sub-systems"
 )
 
 //Perspective are type supported by viz
@@ -172,6 +174,8 @@ func (g *Graph) Init() int {
 		}
 	}
 	g.graph = graph.New(len(g.vids) + 1)
+	g.eids = make(map[string]int64, 0)
+	g.edges = make(edge, 0)
 	return len(g.vids)
 }
 
@@ -180,8 +184,6 @@ func (g *Graph) Analyse() error {
 	if g.graph == nil {
 		return errors.New("Empty or un-initialized graph")
 	}
-	g.eids = make(map[string]int64, 0)
-	g.edges = make(edge, 0)
 	for _, relation := range g.Arc.Relations {
 		sid, ok := g.vids[relation.Subject]
 		if !ok {
@@ -191,14 +193,37 @@ func (g *Graph) Analyse() error {
 		if !ok {
 			return errors.New("Invalid Object id found in relation")
 		}
-		ename := fmt.Sprintf("%s&%s", relation.Subject, relation.Subject)
-		_, ok = g.eids[ename]
+		ename := fmt.Sprintf("%s&%s", relation.Subject, relation.Object)
+		id, ok := g.eids[ename]
 		if !ok {
 			edgeID := int64(len(g.eids) + 1)
 			g.eids[ename] = edgeID
 			g.edges[edgeID] = relation
+			g.graph.AddBothCost(sid, oid, g.eids[ename])
+		} else {
+			if strings.Contains(g.edges[id].Pointer, DefaultDependencyPointer) {
+				g.edges[id] = relation
+			}
 		}
-		g.graph.AddBothCost(sid, oid, g.eids[ename])
+
+		//Add parent dependency if not exists
+		subjectChain := strings.Split(relation.Subject, ".")
+		objectChain := strings.Split(relation.Object, ".")
+		if len(subjectChain) > 1 || len(objectChain) > 1 {
+			parentSubjectID := subjectChain[0]
+			parentObjectID := objectChain[0]
+			if parentObjectID == parentSubjectID {
+				continue
+			}
+			parentEname := fmt.Sprintf("%s&%s", parentSubjectID, parentObjectID)
+			_, ok := g.eids[parentEname]
+			if !ok {
+				pEdgeID := int64(len(g.eids) + 1)
+				g.eids[parentEname] = pEdgeID
+				g.edges[pEdgeID] = model.Relation{Subject: parentSubjectID, Object: parentObjectID, Pointer: fmt.Sprintf("%s:%s", DefaultDependencyPointer, relation.Pointer)}
+				g.graph.AddBothCost(g.vids[parentSubjectID], g.vids[parentObjectID], pEdgeID)
+			}
+		}
 	}
 	return nil
 }
