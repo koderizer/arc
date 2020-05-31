@@ -21,7 +21,7 @@ const (
 	Container                = 2
 	Component                = 3
 	Code                     = 4
-	DefaultDependencyPointer = "Depend on sub-systems"
+	DefaultDependencyPointer = "Use:"
 )
 
 //Perspective are type supported by viz
@@ -36,9 +36,15 @@ type Graph struct {
 	graph *graph.Mutable
 	vids  map[string]int
 	eids  map[string]int64
-	edges edge
+	edges map[int64]edge
 }
-type edge map[int64]model.Relation
+
+// type edge map[int64]model.Relation
+
+type edge struct {
+	relation model.Relation
+	views    map[Perspective]bool
+}
 
 //GetUsers return all users that is concern
 func (g *Graph) GetUsers() ([]model.User, error) {
@@ -131,11 +137,18 @@ func (g *Graph) GetRelations() ([]model.Relation, error) {
 			})
 		}
 		for _, id := range relationIDs {
-			relations = append(relations, g.edges[id])
+			if _, ok := g.edges[id].views[g.Pers]; ok {
+				relations = append(relations, g.edges[id].relation)
+			}
 		}
-		return relations, nil
+	} else {
+		for _, edge := range g.edges {
+			if show, ok := edge.views[g.Pers]; ok && show {
+				relations = append(relations, edge.relation)
+			}
+		}
 	}
-	return g.Arc.Relations, nil
+	return relations, nil
 }
 
 //Init the graph will generate a list of local ids and return total number of nodes
@@ -175,7 +188,7 @@ func (g *Graph) Init() int {
 	}
 	g.graph = graph.New(len(g.vids) + 1)
 	g.eids = make(map[string]int64, 0)
-	g.edges = make(edge, 0)
+	g.edges = make(map[int64]edge, 0)
 	return len(g.vids)
 }
 
@@ -185,6 +198,8 @@ func (g *Graph) Analyse() error {
 		return errors.New("Empty or un-initialized graph")
 	}
 	for _, relation := range g.Arc.Relations {
+		subjectChain := strings.Split(relation.Subject, ".")
+		objectChain := strings.Split(relation.Object, ".")
 		sid, ok := g.vids[relation.Subject]
 		if !ok {
 			return errors.New("Invalid Subject id found in relation")
@@ -194,21 +209,34 @@ func (g *Graph) Analyse() error {
 			return errors.New("Invalid Object id found in relation")
 		}
 		ename := fmt.Sprintf("%s&%s", relation.Subject, relation.Object)
+
+		//Decide which views this path should be shown
+		views := make(map[Perspective]bool, 0)
+		switch len(subjectChain) + len(objectChain) {
+		case 2:
+			views[Landscape] = true
+			views[Context] = true
+		case 3:
+		case 4:
+			views[Container] = true
+		default:
+			views[Component] = true
+		}
+
 		id, ok := g.eids[ename]
 		if !ok {
 			edgeID := int64(len(g.eids) + 1)
 			g.eids[ename] = edgeID
-			g.edges[edgeID] = relation
+			g.edges[edgeID] = edge{relation, views}
 			g.graph.AddBothCost(sid, oid, g.eids[ename])
 		} else {
-			if strings.Contains(g.edges[id].Pointer, DefaultDependencyPointer) {
-				g.edges[id] = relation
+			if strings.Contains(g.edges[id].relation.Pointer, DefaultDependencyPointer) {
+				g.edges[id] = edge{relation, views}
 			}
 		}
 
 		//Add parent dependency if not exists
-		subjectChain := strings.Split(relation.Subject, ".")
-		objectChain := strings.Split(relation.Object, ".")
+
 		if len(subjectChain) > 1 || len(objectChain) > 1 {
 			parentSubjectID := subjectChain[0]
 			parentObjectID := objectChain[0]
@@ -220,7 +248,16 @@ func (g *Graph) Analyse() error {
 			if !ok {
 				pEdgeID := int64(len(g.eids) + 1)
 				g.eids[parentEname] = pEdgeID
-				g.edges[pEdgeID] = model.Relation{Subject: parentSubjectID, Object: parentObjectID, Pointer: fmt.Sprintf("%s:%s", DefaultDependencyPointer, relation.Pointer)}
+				v := make(map[Perspective]bool, 2)
+				v[Context] = true
+				v[Landscape] = true
+				g.edges[pEdgeID] = edge{
+					relation: model.Relation{
+						Subject: parentSubjectID,
+						Object:  parentObjectID,
+						Pointer: fmt.Sprintf("%s:%s", DefaultDependencyPointer, relation.Pointer)},
+					views: v,
+				}
 				g.graph.AddBothCost(g.vids[parentSubjectID], g.vids[parentObjectID], pEdgeID)
 			}
 		}

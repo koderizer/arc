@@ -1,5 +1,5 @@
 app: arcs
-desc: "Arc is a simple utility to author, view, inspect and update software architecture design"
+desc: Arc is a simple utility to author, view, inspect and update software architecture design
 users:
   - name: dev
     role: "one who create software service"
@@ -42,7 +42,7 @@ internal-systems:
       technology: golang-graphql
       desc: "api servers that enable webhooks to other ci/cd toolchain to inspect and update design models"
       components:
-       - name: inpsector
+       - name: inspector
          desc: "inspect the stored software design model"
          code-path: "./api"
        - name: update
@@ -78,12 +78,12 @@ relations:
   - {s: sec,p: inspect defendable quality of system,o: arc-intel}
 
 #Modular dependency:
-  # - {s: arc.arcli,p: serve to local browser,o: arc.gui}
+  - {s: arc.arcli,p: serve to local browser,o: arc.gui}
   - {s: arc.arcli,p: call (https:restful),o: arc-intel.api.update}
-  # - {s: arc.arcli,p: download new project template from,o: git-server}
-  # - {s: arc.arcli,p: call (gRPC),o: arc.arcviz}
-  # - {s: arc.arcviz,p: persist arc graph (https:restful),o: arc-intel.api}
-  # - {s: arc.gui,p: call (https:restful),o: arc-intel.api.inspector}
+  - {s: arc.arcli,p: download new project template from,o: git-server}
+  - {s: arc.arcli,p: call (gRPC),o: arc.arcviz}
+  - {s: arc.arcviz,p: persist arc graph (https:restful),o: arc-intel.api}
+  - {s: arc.gui,p: call (https:restful),o: arc-intel.api.inspector}
 
 # #Extern integrations:
   - {s: dev-ide,p: integrate (pluggin),o: arc.arcli}

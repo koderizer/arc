@@ -102,8 +102,8 @@ var arc = model.ArcType{
 			Pointer: "point to",
 		},
 		{
-			Subject: "s2.c1",
-			Object:  "s1.c1",
+			Subject: "s1.c1",
+			Object:  "s2.c1",
 			Pointer: "call",
 		},
 	},
@@ -269,7 +269,7 @@ func TestGetRelations(t *testing.T) {
 	}{
 		{
 			data: prepData(model.PresentationPerspective_CONTEXT, []string{}),
-			resp: arc.Relations,
+			resp: arc.Relations[:5],
 			err:  nil,
 		},
 	}
