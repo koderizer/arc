@@ -46,6 +46,7 @@ import (
 
 var extraAPIs []string
 var outFile string
+var override bool
 
 //ManifestData represent key extracts of the k8s manifest
 type ManifestData struct {
@@ -75,11 +76,10 @@ The default behavior is recursively look at all sub directories to profile
 				fmt.Println(err)
 			}
 		}
-		fmt.Println("Mapping application at root: ", path)
 		files := getHelms(path)
 		arcData := model.ArcType{}
 		arcData.App = filepath.Base(path)
-		arcData.Desc = ToFillNotice
+		arcData.Desc = "App mapped from " + path
 		arcData.InternalSystems = make([]model.InternalSystem, 0)
 		arcData.ExternalSystems = make([]model.ExternalSystem, 0)
 
@@ -211,8 +211,11 @@ The default behavior is recursively look at all sub directories to profile
 			return
 		}
 
-		fmt.Println(wr.String())
-		if err := ioutil.WriteFile(outFile, wr.Bytes(), os.ModeAppend); err != nil {
+		if _, err := os.Stat(outFile); err == nil && !override {
+			fmt.Printf("Output file %s exist but force-override flag not set. Abort", outFile)
+			os.Exit(1)
+		}
+		if err := ioutil.WriteFile(outFile, wr.Bytes(), 0644); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
@@ -291,6 +294,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// hemlmapCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	extraAPIs = *helmmapCmd.PersistentFlags().StringArrayP("api-versions", "a", []string{}, "Kubernetes api versions used for Capabilities.APIVersions")
-	outFile = *helmmapCmd.PersistentFlags().StringP("out", "o", "arc.yaml", "Output file to write")
+	helmmapCmd.PersistentFlags().StringArrayVarP(&extraAPIs, "api-versions", "a", []string{}, "Kubernetes api versions used for Capabilities.APIVersions")
+	helmmapCmd.PersistentFlags().StringVarP(&outFile, "out", "o", "arc.yaml", "Output file to write")
+	helmmapCmd.PersistentFlags().BoolVar(&override, "force-override", false, "Force override the existing content of the output file")
 }
