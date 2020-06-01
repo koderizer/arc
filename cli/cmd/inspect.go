@@ -31,9 +31,11 @@ import (
 
 var vizAddress string
 var arcFilename string
+var outFormat string
 
 //defaultArcFile point to the arc.yaml in the current directory arcli run
 const defaultArcFile = "./arc.yaml"
+const defaultOutForm = "svg"
 
 // inspectCmd represents the inspect command
 var inspectCmd = &cobra.Command{
@@ -104,8 +106,19 @@ To render the Container perspective of your amazingSystem1 and amazingSystem2 as
 
 		client := model.NewArcVizClient(conn)
 
+		var vizform model.ArcVisualFormat
+		switch outFormat {
+		case "svg":
+			vizform = model.ArcVisualFormat_SVG
+		case "png":
+			vizform = model.ArcVisualFormat_PNG
+		default:
+			log.Printf("Visual form not supported")
+			return
+		}
+
 		pngViz, err := client.Render(context.Background(), &model.RenderRequest{
-			VisualFormat: model.ArcVisualFormat_PNG,
+			VisualFormat: vizform,
 			DataFormat:   model.ArcDataFormat_ARC,
 			Data:         data,
 			Target:       targets,
@@ -125,7 +138,7 @@ To render the Container perspective of your amazingSystem1 and amazingSystem2 as
 		// }
 		// http.Handle("/", http.FileServer(http.Dir("./")))
 		uri := string(pngViz.GetData())
-		log.Println(uri)
+		fmt.Println(uri)
 		open(uri)
 		// panic(http.ListenAndServe(":10001", nil))
 	},
@@ -152,9 +165,8 @@ func open(url string) error {
 func init() {
 	rootCmd.AddCommand(inspectCmd)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
 	inspectCmd.PersistentFlags().StringVar(&vizAddress, "viz", "localhost:10000", "URI of an acrviz app")
 	inspectCmd.PersistentFlags().StringVarP(&arcFilename, "file", "f", defaultArcFile, "Path to the arc.yaml file to inspect")
+	inspectCmd.PersistentFlags().StringVarP(&outFormat, "outform", "o", defaultOutForm, "Output format (png | svg)")
 
 }

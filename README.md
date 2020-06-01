@@ -1,8 +1,8 @@
-# Arc
+# arc
 
 __Software architecture made simple__
 
-Arc is a simple utility to author, visualize, inspect and update software architecture design easily through simple YAML files. 
+arc is a simple utility to author, visualize, inspect and update software architecture design easily through simple YAML files. 
 
 It is the utility to adopt the [C4model](https://c4model.com) architecture design approach that is promoted by Simon Brown. Arc allow the practice of architecture as code, allow easy integration to CiCd workflows such that archictecture information is accumulated and kept up to date as the system complexity grows, easily and free of any additional manual effort. 
 

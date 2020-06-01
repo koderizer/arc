@@ -1,10 +1,24 @@
-system: viz 
-
-components: 
-  - name: plantuml-server
+containers: 
+- name: arcviz 
+  components: 
+  - name: render-server
     desc: "service that render architecture visualization from staruml code"
     technology: java-plantuml
     code: "plantuml/plantuml-server:jetty"
-  - name: arc-viz
-    desc: "grpc server that layout puml source and feed to plantuml server to render then return"
-    code: golang-grpc
+  - name: viz-layout
+    desc: "grpc server that analyze request and layout to puml source"
+    technology: golang-grpc
+    code: "koderizer/arc/viz"
+  activities:
+  - name: render 
+    flow: 
+    - viz-layout receives render request 
+    - viz-layout analyse requests and build a graph in-memory
+    - viz-layout feed the graph to a template engine that write out markup script for render-server
+    - render-server validate markup and return an uid of the visualization
+    - viz-layout capture the uid and return to requester
+  - name: serve-visual
+    flow:
+    - render-server receives uid of the visualization
+    - render-server check in-memory cache and returns if-found
+    - render-server perform rendering and response to cache if-not-found

@@ -1,5 +1,5 @@
 app: arcs
-desc: "Arc is a simple utility to author, view, inspect and update software architecture design"
+desc: Arc is a simple utility to author, view, inspect and update software architecture design
 users:
   - name: dev
     role: "one who create software service"
@@ -42,10 +42,10 @@ internal-systems:
       technology: golang-graphql
       desc: "api servers that enable webhooks to other ci/cd toolchain to inspect and update design models"
       components:
-       - name: inpsector-api 
+       - name: inspector
          desc: "inspect the stored software design model"
          code-path: "./api"
-       - name: update-api
+       - name: update
          desc: "create or update software design information"
          code-path: "./api"
          
@@ -85,7 +85,7 @@ relations:
   - {s: arc.arcviz,p: persist arc graph (https:restful),o: arc-intel.api}
   - {s: arc.gui,p: call (https:restful),o: arc-intel.api.inspector}
 
-#Extern integrations:
+# #Extern integrations:
   - {s: dev-ide,p: integrate (pluggin),o: arc.arcli}
   - {s: build-service,p: update system model,o: arc-intel.api.update}
   - {s: deploy-service,p: verify deployment design,o: arc-intel}
