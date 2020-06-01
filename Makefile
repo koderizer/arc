@@ -12,3 +12,6 @@ dev:
 
 cleandev:
 	docker stop arcvizdev && docker rm arcvizdev
+
+arcli:
+	cd cli && make clean build
