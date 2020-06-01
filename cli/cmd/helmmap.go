@@ -20,12 +20,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/koderizer/arc/model"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -76,6 +76,10 @@ The default behavior is recursively look at all sub directories to profile
 				fmt.Println(err)
 			}
 		}
+		if _, err := os.Stat(outFile); err == nil && !override {
+			fmt.Printf("Output file %s exist but force-override flag not set. Abort\n", outFile)
+			os.Exit(1)
+		}
 		files := getHelms(path)
 		arcData := model.ArcType{}
 		arcData.App = filepath.Base(path)
@@ -94,7 +98,7 @@ The default behavior is recursively look at all sub directories to profile
 		client.Replace = true // Skip the name check
 		client.ClientOnly = true
 		client.APIVersions = chartutil.VersionSet(extraAPIs)
-
+		skip := []string{}
 		for _, f := range files {
 			name := filepath.Base(f)
 			client.ReleaseName = name
@@ -102,21 +106,24 @@ The default behavior is recursively look at all sub directories to profile
 			cp, err := client.ChartPathOptions.LocateChart(f, settings)
 			if err != nil {
 				fmt.Println(err)
-				return
+				skip = append(skip, f)
+				continue
 			}
 			p := getter.All(settings)
 			valueOpts := &values.Options{}
 			vals, err := valueOpts.MergeValues(p)
 			if err != nil {
 				fmt.Println(err)
-				return
+				skip = append(skip, f)
+				continue
 			}
 
 			// Check chart dependencies to make sure all are present in /charts
 			chartRequested, err := loader.Load(cp)
 			if err != nil {
 				fmt.Println(err)
-				return
+				skip = append(skip, f)
+				continue
 			}
 
 			if req := chartRequested.Metadata.Dependencies; req != nil {
@@ -137,16 +144,19 @@ The default behavior is recursively look at all sub directories to profile
 						}
 						if err = man.Update(); err != nil {
 							fmt.Println(err)
-							return
+							skip = append(skip, f)
+							continue
 						}
 						// Reload the chart with the updated Chart.lock file.
 						if chartRequested, err = loader.Load(cp); err != nil {
 							fmt.Println(err)
-							return
+							skip = append(skip, f)
+							continue
 						}
 					} else {
 						fmt.Println(err)
-						return
+						skip = append(skip, f)
+						continue
 					}
 				}
 			}
@@ -155,70 +165,87 @@ The default behavior is recursively look at all sub directories to profile
 			rel, err := client.Run(chartRequested, vals)
 			if err != nil {
 				fmt.Println(err)
-				return
+				skip = append(skip, f)
+				continue
 			}
-			decode := serializer.NewCodecFactory(sch).UniversalDeserializer().Decode
-			kubeObj, _, err := decode([]byte(rel.Manifest), nil, nil)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			manifest := &ManifestData{}
-			if err := yaml.Unmarshal([]byte(rel.Manifest), manifest); err != nil {
-				fmt.Println(err)
-				return
-			}
-			// fmt.Println(rel.Manifest)
-			switch manifest.APIVersion + "." + manifest.Kind {
-			case "extensions/v1beta1.Deployment":
-				deployment := kubeObj.(*v1beta1.Deployment)
-				system := model.InternalSystem{
-					Name:       deployment.GetName(),
-					Desc:       cp + deployment.GetSelfLink(),
-					Containers: make([]model.Container, 0),
-				}
 
-				for _, c := range deployment.Spec.Template.Spec.Containers {
-					system.Containers = append(system.Containers, model.Container{
-						Name:       c.Name,
-						Desc:       ToFillNotice,
-						Technology: c.Image,
-						Runtime:    manifest.Kind,
-					})
+			manifests := strings.Split(rel.Manifest, "---")
+			for i, man := range manifests {
+				if i == 0 {
+					continue
 				}
-				arcData.InternalSystems = append(arcData.InternalSystems, system)
-			case "v1.Service":
-				service := kubeObj.(*v1.Service)
-				extSystem := model.ExternalSystem{
-					Name: service.GetName(),
-					Desc: string(service.GetUID()),
+				// fmt.Println("section ", i, man)
+				manifest := &ManifestData{}
+				decode := serializer.NewCodecFactory(sch).UniversalDeserializer().Decode
+				kubeObj, _, err := decode([]byte(man), nil, nil)
+				if err != nil {
+					fmt.Println(err)
+					skip = append(skip, f)
+					continue
 				}
-				arcData.ExternalSystems = append(arcData.ExternalSystems, extSystem)
-			default:
-				fmt.Println("Not supported")
+				if err := yaml.Unmarshal([]byte(man), manifest); err != nil {
+					fmt.Println(err)
+					skip = append(skip, f)
+					continue
+				}
+				switch manifest.APIVersion + "." + manifest.Kind {
+				case "extensions/v1beta1.Deployment":
+					deployment := kubeObj.(*v1beta1.Deployment)
+					runtime := "default"
+					if ns := deployment.GetNamespace(); ns != "" {
+						runtime = ns
+					}
+					system := model.InternalSystem{
+						Name:       deployment.GetName(),
+						Desc:       "Deployment " + cp,
+						Containers: make([]model.Container, 0),
+					}
+
+					for _, c := range deployment.Spec.Template.Spec.Containers {
+						system.Containers = append(system.Containers, model.Container{
+							Name:       c.Name,
+							Desc:       "Image " + c.Image,
+							Technology: "k8s-container",
+							Runtime:    runtime,
+						})
+					}
+					arcData.InternalSystems = append(arcData.InternalSystems, system)
+				case "v1.Service":
+					// service := kubeObj.(*v1.Service)
+					// system := model.InternalSystem{
+					// 	Name:       service.GetName(),
+					// 	Desc:       "Service " + cp,
+					// 	Containers: make([]model.Container, 0),
+					// }
+					// arcData.InternalSystems = append(arcData.InternalSystems, system)
+					fmt.Println("Thinking how to treat Service abstraction")
+				default:
+					fmt.Println("Not yet supported: ", manifest.APIVersion, manifest.Kind)
+				}
 			}
 		}
 		arcTpl, err := template.New("arcTemplate").Parse(arcTemplate)
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 
 		arcYaml := []byte{}
 		wr := bytes.NewBuffer(arcYaml)
 		if err := arcTpl.ExecuteTemplate(wr, "arcTemplate", arcData); err != nil {
 			fmt.Println(err)
-			return
-		}
-
-		if _, err := os.Stat(outFile); err == nil && !override {
-			fmt.Printf("Output file %s exist but force-override flag not set. Abort", outFile)
 			os.Exit(1)
 		}
+
 		if err := ioutil.WriteFile(outFile, wr.Bytes(), 0644); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+
+		fmt.Println("Summary report: ")
+		fmt.Println("	Total internal-systems: ", len(arcData.InternalSystems))
+		fmt.Println("	Total external-systems: ", len(arcData.ExternalSystems))
+		fmt.Println("Skip total ", len(skip))
 		return
 	},
 }
