@@ -65,25 +65,25 @@ type edge struct {
 }
 
 //GetUsers return all users that is concern
-func (g *Graph) GetUsers() ([]model.User, error) {
-	if g.Arc == nil {
-		return nil, errors.New("Empty graph")
-	}
-	users := make([]model.User, 0)
-	if len(g.tars) > 0 {
-		for _, tar := range g.tars {
-			vid, _ := g.vids[tar]
-			for _, u := range g.Arc.Users {
-				uid, _ := g.vids[u.Name]
-				if g.graph.Edge(vid, uid) {
-					users = append(users, u)
-				}
-			}
-		}
-		return users, nil
-	}
-	return g.Arc.Users, nil
-}
+// func (g *Graph) GetUsers() ([]model.User, error) {
+// 	if g.Arc == nil {
+// 		return nil, errors.New("Empty graph")
+// 	}
+// 	users := make([]model.User, 0)
+// 	if len(g.tars) > 0 {
+// 		for _, tar := range g.tars {
+// 			vid, _ := g.vids[tar]
+// 			for _, u := range g.Arc.Users {
+// 				uid, _ := g.vids[u.Name]
+// 				if g.graph.Edge(vid, uid) {
+// 					users = append(users, u)
+// 				}
+// 			}
+// 		}
+// 		return users, nil
+// 	}
+// 	return g.Arc.Users, nil
+// }
 
 //GetInternalSystems return relevant internal systems
 // func (g *Graph) GetInternalSystems() ([]model.InternalSystem, error) {
@@ -118,22 +118,24 @@ func (g *Graph) GetUsers() ([]model.User, error) {
 // 	return g.Arc.InternalSystems, nil
 // }
 
-//GetUsers return relevant internal systems
-// func (g *Graph) GetUsers() ([]model.User, error) {
-// 	if g.Arc == nil {
-// 		return nil, errors.New("Empty graph")
-// 	}
-// 	users := make([]model.User, 0)
-// 	if len(g.tars) > 0 {
-// 		for _, tid := range g.tarMap {
-// 			for _, vid := range g.walkTarget(tid, VerticeTypeUser) {
-// 				users = append(users, g.vertices[vid].Entity.(model.User))
-// 			}
-// 		}
-// 		return users, nil
-// 	}
-// 	return g.Arc.Users, nil
-// }
+// GetUsers return relevant internal systems
+func (g *Graph) GetUsers() ([]model.User, error) {
+	if g.Arc == nil {
+		return nil, errors.New("Empty graph")
+	}
+	users := make([]model.User, 0)
+	if len(g.tars) > 0 {
+		for _, tid := range g.tarMap {
+			if g.Pers == Context || g.Pers == Landscape {
+				for _, vid := range g.walkTarget(tid, VerticeTypeUser) {
+					users = append(users, g.vertices[vid].Entity.(model.User))
+				}
+			}
+		}
+		return users, nil
+	}
+	return g.Arc.Users, nil
+}
 
 //GetInternalSystems return relevant internal systems
 func (g *Graph) GetInternalSystems() ([]model.InternalSystem, error) {
@@ -166,15 +168,16 @@ func (g *Graph) GetExternalSystems() ([]model.ExternalSystem, error) {
 	systems := make([]model.ExternalSystem, 0)
 	if len(g.tars) > 0 {
 		for tar, tid := range g.tarMap {
-			for _, vid := range g.walkTarget(tid, VerticeTypeExternalSystem) {
-				systems = append(systems, g.vertices[vid].Entity.(model.ExternalSystem))
+			if g.Pers == Context || g.Pers == Landscape {
+				for _, vid := range g.walkTarget(tid, VerticeTypeExternalSystem) {
+					systems = append(systems, g.vertices[vid].Entity.(model.ExternalSystem))
+				}
 			}
 			for _, container := range g.vertices[tid].Entity.(model.InternalSystem).Containers {
 				for _, vid := range g.walkTarget(g.vids[tar+"."+container.Name], VerticeTypeExternalSystem) {
 					systems = append(systems, g.vertices[vid].Entity.(model.ExternalSystem))
 				}
 			}
-
 		}
 		return systems, nil
 	}
@@ -246,7 +249,12 @@ func (g *Graph) Init() int {
 	//Form a local list of ids by simply iterate and incrementally index
 	for _, user := range g.Arc.Users {
 		if _, ok := g.vids[user.Name]; !ok {
-			g.vids[user.Name] = len(g.vids) + 1
+			vid := len(g.vids) + 1
+			g.vids[user.Name] = vid
+			g.vertices[vid] = Vertice{
+				Entity: user,
+				Kind:   VerticeTypeUser,
+			}
 		}
 	}
 	for _, isys := range g.Arc.InternalSystems {
@@ -286,7 +294,12 @@ func (g *Graph) Init() int {
 	}
 	for _, esys := range g.Arc.ExternalSystems {
 		if _, ok := g.vids[esys.Name]; !ok {
-			g.vids[esys.Name] = len(g.vids) + 1
+			vid := len(g.vids) + 1
+			g.vids[esys.Name] = vid
+			g.vertices[vid] = Vertice{
+				Entity: esys,
+				Kind:   VerticeTypeExternalSystem,
+			}
 		}
 	}
 	g.graph = graph.New(len(g.vids) + 1)
