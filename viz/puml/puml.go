@@ -25,7 +25,7 @@ type C4SystemContainer struct {
 	Systems   map[string][]model.Container
 	Users     []model.User
 	Relations []C4Relation
-	Neighbors []C4Neighbor
+	Neighbors []model.ExternalSystem
 }
 
 //C4Neighbor is the generic presentation for any partnering elements
@@ -101,14 +101,6 @@ func c4ContextParse(arcData model.ArcType, targets ...string) (C4Context, error)
 //C4ContainerPuml generate the C4 plantUml code from ArcType data to draw Container diagram for target Systems
 func C4ContainerPuml(arcData model.ArcType, targets ...string) (string, error) {
 
-	systems := make(map[string]*model.InternalSystem, 0)
-	for _, s := range arcData.InternalSystems {
-		log.Println("look for:", s.Name)
-		if found := strings.Contains(strings.Join(targets, "+"), s.Name); found {
-			systems[s.Name] = &s
-		}
-	}
-
 	funcMap := template.FuncMap{
 		"CleanUp": cleanUp,
 		"CleanID": cleanID,
@@ -118,7 +110,7 @@ func C4ContainerPuml(arcData model.ArcType, targets ...string) (string, error) {
 		log.Println("Fail to parse tpl")
 		return "", err
 	}
-	data, err := c4ContainerParse(arcData, systems)
+	data, err := c4ContainerParse(arcData)
 	if err != nil {
 		log.Println(err)
 		return "", err
@@ -135,117 +127,27 @@ func C4ContainerPuml(arcData model.ArcType, targets ...string) (string, error) {
 }
 
 //c4ContainerParse return the data to render Container diagram for given target system and clip out all others.
-func c4ContainerParse(arcData model.ArcType, targets map[string]*model.InternalSystem) (C4SystemContainer, error) {
-	systems := make(map[string][]model.Container, 0)
+func c4ContainerParse(arcData model.ArcType) (C4SystemContainer, error) {
 
-	relMap := make(map[string]C4Relation, 0)
-	conMap := make(map[string]bool)
-	neiMap := make(map[string]bool)
 	rels := make([]C4Relation, 0)
-	users := make([]model.User, 0)
-	neis := make([]C4Neighbor, 0)
-	for _, target := range targets {
-
-		if target == nil {
-			return C4SystemContainer{}, errors.New("nil target system pointer")
-		}
-		/*
-			Get all containers in targeted system
-			Map the unique list of path to and from the containers
-			Clip all neighbor elements into their system level
-		*/
-		for _, c := range target.Containers {
-			cid := target.Name + "." + c.Name
-			if _, ok := conMap[cid]; !ok {
-				conMap[cid] = true
-			}
-		}
-		for _, rel := range arcData.Relations {
-			_, isO := conMap[rel.Object]
-			_, isS := conMap[rel.Subject]
-			if !isO && !isS {
-				continue
-			}
-
-			var nIDSys string
-			subjectChain := strings.Split(rel.Subject, ".")
-			subjectClip := subjectChain[0]
-			objectChain := strings.Split(rel.Object, ".")
-			objectClip := objectChain[0]
-			if _, ok := conMap[rel.Subject]; !ok {
-				nIDSys = subjectClip
-				if len(objectChain) >= 2 {
-					objectClip = strings.Join(objectChain[0:2], ".")
-				}
-			} else {
-				if _, ok := conMap[rel.Object]; !ok {
-					nIDSys = objectClip
-				} else {
-					if len(objectChain) >= 2 {
-						objectClip = strings.Join(objectChain[0:2], ".")
-					}
-				}
-				if len(subjectChain) >= 2 {
-					subjectClip = strings.Join(subjectChain[0:2], ".")
-				}
-			}
-
-			if nIDSys != target.Name {
-				if _, ok := neiMap[nIDSys]; !ok {
-					neiMap[nIDSys] = true
-				}
-			}
-
-			relID := subjectClip + "->" + objectClip
-			if _, ok := relMap[relID]; !ok {
-				relMap[relID] = C4Relation{
-					Object:      objectClip,
-					Subject:     subjectClip,
-					Pointer:     cleanRelation(rel.Pointer),
-					PointerTech: parseRelationTech(rel.Pointer),
-				}
-			}
-		}
-		systems[target.Name] = target.Containers
-
-		for _, v := range relMap {
-			rels = append(rels, v)
-		}
-		for k := range neiMap {
-			var desc string
-			for _, is := range arcData.InternalSystems {
-				if k == is.Name {
-					desc = is.Desc
-					goto found
-				}
-			}
-			for _, es := range arcData.ExternalSystems {
-				if k == es.Name {
-					desc = es.Desc
-					goto found
-				}
-			}
-			for _, us := range arcData.Users {
-				if k == us.Name {
-					users = append(users, us)
-				}
-			}
-		found:
-			if desc != "" {
-				if _, ok := targets[k]; !ok {
-					neis = append(neis, C4Neighbor{
-						Name: k,
-						Desc: desc,
-					})
-				}
-			}
-		}
+	sys := make(map[string][]model.Container, 0)
+	for _, s := range arcData.InternalSystems {
+		sys[s.Name] = s.Containers
 	}
+	for _, r := range arcData.Relations {
+		rels = append(rels, C4Relation{
+			Subject:     r.Subject,
+			Object:      r.Object,
+			Pointer:     cleanRelation(r.Pointer),
+			PointerTech: parseRelationTech(r.Pointer),
+		})
+	}
+
 	return C4SystemContainer{
-		Systems:   systems,
-		Users:     users,
+		Systems:   sys,
+		Users:     arcData.Users,
 		Relations: rels,
-		Neighbors: neis,
+		Neighbors: arcData.ExternalSystems,
 	}, nil
 }
 
