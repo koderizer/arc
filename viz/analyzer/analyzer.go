@@ -144,23 +144,23 @@ func (g *Graph) GetInternalSystems() ([]model.InternalSystem, error) {
 	}
 	systems := make([]model.InternalSystem, 0)
 	if len(g.tars) > 0 {
-		for tar, tid := range g.tarMap {
+		for _, tid := range g.tarMap {
 			systems = append(systems, g.vertices[tid].Entity.(model.InternalSystem))
-			for _, vid := range g.walkTarget(tid, VerticeTypeInternalSystem) {
-				systems = append(systems, g.vertices[vid].Entity.(model.InternalSystem))
-			}
-			for _, container := range g.vertices[tid].Entity.(model.InternalSystem).Containers {
-				for _, vid := range g.walkTarget(g.vids[tar+"."+container.Name], VerticeTypeInternalSystem) {
-					systems = append(systems, g.vertices[vid].Entity.(model.InternalSystem))
-				}
-			}
+			// for _, vid := range g.walkTarget(tid, VerticeTypeInternalSystem) {
+			// 	systems = append(systems, g.vertices[vid].Entity.(model.InternalSystem))
+			// }
+			// for _, container := range g.vertices[tid].Entity.(model.InternalSystem).Containers {
+			// 	for _, vid := range g.walkTarget(g.vids[tar+"."+container.Name], VerticeTypeInternalSystem) {
+			// 		systems = append(systems, g.vertices[vid].Entity.(model.InternalSystem))
+			// 	}
+			// }
 		}
 		return systems, nil
 	}
 	return g.Arc.InternalSystems, nil
 }
 
-//GetExternalSystems return relevant internal systems
+//GetExternalSystems return relevant external systems or internal systems if the view is targeted
 func (g *Graph) GetExternalSystems() ([]model.ExternalSystem, error) {
 	if g.Arc == nil {
 		return nil, errors.New("Empty graph")
@@ -176,6 +176,13 @@ func (g *Graph) GetExternalSystems() ([]model.ExternalSystem, error) {
 			for _, container := range g.vertices[tid].Entity.(model.InternalSystem).Containers {
 				for _, vid := range g.walkTarget(g.vids[tar+"."+container.Name], VerticeTypeExternalSystem) {
 					systems = append(systems, g.vertices[vid].Entity.(model.ExternalSystem))
+				}
+				for _, vid := range g.walkTarget(g.vids[tar+"."+container.Name], VerticeTypeInternalSystem) {
+					internalExtern := g.vertices[vid].Entity.(model.InternalSystem)
+					systems = append(systems, model.ExternalSystem{
+						Name: internalExtern.Name,
+						Desc: internalExtern.Desc,
+					})
 				}
 			}
 		}

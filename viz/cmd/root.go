@@ -24,15 +24,20 @@ import (
 	"github.com/koderizer/arc/model"
 	"github.com/koderizer/arc/viz/server"
 	"github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
 	"github.com/spf13/viper"
 )
 
-var port string
+type rootConfig struct {
+	Port         string `mapstructure:"port"`
+	PlantUmlAddr string `mapstructure:"PUMLADDR"`
+}
+
 var cfgFile string
-var plantUmlAddr string
+var config = &rootConfig{}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -46,13 +51,14 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Implement ArcVizServer
 	Run: func(cmd *cobra.Command, args []string) {
-		lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+		log.Printf("%#v", config)
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%s", config.Port))
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
 		grpcServer := grpc.NewServer()
-		model.RegisterArcVizServer(grpcServer, server.NewArcViz(plantUmlAddr))
-		log.Printf("Start server listening on port: %s", port)
+		model.RegisterArcVizServer(grpcServer, server.NewArcViz(config.PlantUmlAddr))
+		log.Printf("Start server listening on port: %s\n depending on Plantuml at %s", config.Port, config.PlantUmlAddr)
 		grpcServer.Serve(lis)
 	},
 }
@@ -74,9 +80,17 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.viz.yaml)")
-	rootCmd.PersistentFlags().StringVar(&port, "port", "10000", "listening port(default is 10000)")
-	rootCmd.PersistentFlags().StringVar(&plantUmlAddr, "pumladdr", "http://localhost:8080", "Address of the Plant UML server(default is on localhost)")
 
+	rootCmd.PersistentFlags().StringVar(&config.Port, "port", "10000", "listening port(default is 10000)")
+	viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
+	// rootCmd.PersistentFlags().StringVar(&config.PlantUmlAddr, "pumladdr", "http://localhost:8080", "Address of the Plant UML server(default is on localhost)")
+	// viper.BindPFlag("pumladdr", rootCmd.PersistentFlags().Lookup("pumladdr"))
+
+	viper.AutomaticEnv() // read in environment variables that match
+	err := viper.Unmarshal(&config)
+	if err != nil {
+		log.Println(errors.Wrap(err, "unmarshal config file"))
+	}
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
@@ -99,8 +113,6 @@ func initConfig() {
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".viz")
 	}
-
-	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

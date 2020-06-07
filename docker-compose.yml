@@ -1,0 +1,14 @@
+version: "3"
+services:
+  plantuml:
+    image: plantuml/plantuml-server:jetty
+    ports:
+      - "8080:8080"
+  marcviz:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.arcviz
+    ports:
+      - "10000:10000"
+    environment: 
+      pumladdr: "http://plantuml:8080"
