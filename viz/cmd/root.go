@@ -33,7 +33,7 @@ import (
 
 type rootConfig struct {
 	Port         string `mapstructure:"port"`
-	PlantUmlAddr string `mapstructure:"PUMLADDR"`
+	PlantUmlAddr string `mapstructure:"PUML_ADDR"`
 }
 
 var cfgFile string
@@ -83,11 +83,12 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&config.Port, "port", "10000", "listening port(default is 10000)")
 	viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
-	// rootCmd.PersistentFlags().StringVar(&config.PlantUmlAddr, "pumladdr", "http://localhost:8080", "Address of the Plant UML server(default is on localhost)")
-	// viper.BindPFlag("pumladdr", rootCmd.PersistentFlags().Lookup("pumladdr"))
+	rootCmd.PersistentFlags().StringVar(&config.PlantUmlAddr, "pumladdr", "http://localhost:8080", "Address of the Plant UML server(default is on localhost)")
+	viper.BindPFlag("PUML_ADDR", rootCmd.PersistentFlags().Lookup("pumladdr"))
 
 	viper.AutomaticEnv() // read in environment variables that match
 	err := viper.Unmarshal(&config)
+	log.Println(viper.GetString("PUML_ADDR"))
 	if err != nil {
 		log.Println(errors.Wrap(err, "unmarshal config file"))
 	}
