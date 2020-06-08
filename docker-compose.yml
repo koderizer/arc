@@ -1,7 +1,7 @@
-version: "3"
+version: "3.7"
 services:
   plantuml:
-    image: plantuml/plantuml-server:jetty
+    image: koderizer/arcviz:latest
     ports:
       - "8080:8080"
   marcviz:
@@ -11,4 +11,4 @@ services:
     ports:
       - "10000:10000"
     environment: 
-      pumladdr: "http://plantuml:8080"
+      PUML_ADDR: "http://plantuml:8080"
