@@ -1,0 +1,14 @@
+version: "3.7"
+services:
+  plantuml:
+    image: koderizer/arcviz:latest
+    ports:
+      - "8080:8080"
+  marcviz:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.arcviz
+    ports:
+      - "10000:10000"
+    environment: 
+      PUML_ADDR: "http://plantuml:8080"
